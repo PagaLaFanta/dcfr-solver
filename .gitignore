@@ -12,9 +12,12 @@ build/
 # Lo que deja la bateria si se la mata a media captura de stdout.
 solver_check_stdout.tmp
 
-# El banco de pruebas contra otros solvers. No se publica: automatiza un
-# programa de pago con la licencia de esta maquina y lleva sus rutas dentro.
-tools/pio/
+# De tools/ solo sale lo que es de este programa. Lo demas de esa carpeta son
+# bancos de pruebas que automatizan programas de pago con la licencia de esta
+# maquina y llevan sus rutas dentro: se quedan en local, y con la regla escrita
+# asi tampoco hace falta nombrarlos.
+tools/*
+!tools/eqcheck.cpp
 
 # El diario de desarrollo. Es una libreta de trabajo, no documentacion: las
 # razones que valen para quien lee el codigo estan en los comentarios y en el
