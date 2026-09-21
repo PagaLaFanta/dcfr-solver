@@ -81,6 +81,7 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
   main.plegado .grid.strat{max-width:860px}
   main.plegado .grid.strat .cell{font-size:17px}
   #setupBtn{padding:3px 10px;font-size:11px;border-radius:99px}
+  #goTop,#stopTop{padding:3px 12px;font-size:11px;border-radius:99px}
   tr.pick{cursor:pointer}
   tr.pick:hover td{background:var(--panel2)}
   tr.pick.on td{background:var(--panel2);box-shadow:inset 0 0 0 1px var(--accent)}
@@ -564,7 +565,9 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
   body.playing main{display:none}
   body.playing header .pill,
   body.playing header .board,
-  body.playing #setupBtn{display:none}
+  body.playing #setupBtn,
+  body.playing #goTop,
+  body.playing #stopTop{display:none}
 
   .tbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
         padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
@@ -777,6 +780,7 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
   .rev tr.bad td.n{color:#ff8b8b}
   .rev tr.good td.n{color:#7ee2a8}
 </style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234c8bf5'/%3E%3Ctext x='32' y='49' font-size='46' text-anchor='middle' fill='%23ffffff' font-family='Segoe UI Symbol, DejaVu Sans, serif'%3E%26%239824;%3C/text%3E%3C/svg%3E">
 </head>
 <body>
 
@@ -784,6 +788,9 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
   <button id="setupBtn" class="sm" onclick="toggleSetup()"
           title="esconder el montaje y dejarle el ancho a la solución"></button>
   <span class="title">DCFR Solver</span><span id="ver" class="ver"></span>
+  <button id="goTop" class="sm primary" onclick="solve()">Resolver</button>
+  <button id="stopTop" class="sm stop" onclick="stopSolve()"
+          style="display:none">Stop</button>
   <button id="playBtn" class="sm" onclick="trainOpen()"
           title="jugar el árbol resuelto contra la solución, mano a mano">Jugar</button>
   <span class="board" id="boardView"></span>
@@ -2389,6 +2396,7 @@ function applyState(resetNav){
   const go=document.getElementById('goBtn'), st=document.getElementById('saveTreeBtn');
   go.disabled=!state.ready;
   go.title=state.ready?'':state.notReady;
+  espejaGo();
   const mb=document.getElementById('moreBtn');
   mb.disabled=solvingLive||!state.solved;
   mb.title=state.solved?t('sigue desde donde esta, sin tirar lo hecho')
@@ -2915,8 +2923,28 @@ function setSolving(on){
   });
   document.getElementById('moreBtn').disabled=on||!(state&&state.solved);
   document.getElementById('stopBtn').style.display=on?'':'none';
+  document.getElementById('stopTop').style.display=on?'':'none';
+  espejaGo();
   document.getElementById('progWrap').style.display=on?'':'none';
   document.getElementById('progPill').style.display=on?'':'none';
+}
+// MEDIDO abriendo la pagina en limpio, con la ventana de 808 px que trae
+// un portatil: el boton de Resolver estaba a 1823 px de alto en una pagina de
+// 2208, o sea fuera de la primera pantalla, detras de la rejilla entera de
+// rangos. Y la columna de la derecha repetia tres veces "resuelve para ver
+// esto" sin que hubiera nada que pulsar a la vista. Ahora esta tambien en la
+// cabecera, al lado de los avisos que hablan de el.
+//
+// El de arriba no tiene estado propio a proposito: lo copia del de abajo,
+// que ya sabe si falta un rango, si hay locks sin aplicar y por que no se
+// puede. Dos botones con dos estados acaban discrepando.
+function espejaGo(){
+  const g=document.getElementById('goBtn'), a=document.getElementById('goTop');
+  if(!g||!a) return;
+  a.disabled=g.disabled;
+  a.title=g.title;
+  a.classList.toggle('pend', g.classList.contains('pend'));
+  a.style.display=solvingLive?'none':'';
 }
 function fmtSecs(x){
   if(x<90) return x.toFixed(0)+'s';

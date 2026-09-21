@@ -79,6 +79,8 @@ public:
         nothing_on_screen_is_left_in_english();
         the_build_says_which_one_it_is();
         the_readme_names_buttons_that_exist();
+        the_first_screen_has_the_button_that_solves();
+        the_page_never_asks_the_server_for_a_file();
         the_help_says_what_it_is_written_to_say();
         the_console_speaks_one_language();
         a_narrow_window_does_not_squeeze_the_solution();
@@ -3171,6 +3173,111 @@ private:
     // el texto del rango y la rejilla. Los cuatro tienen que pasar por el mismo
     // aviso, y el aviso tiene que mirar si hay algo que perder -- sin
     // iteraciones hechas no debe molestar a nadie.
+    // Lo primero que ve quien abre esto se puede pulsar.
+    //
+    // MEDIDO abriendo la pagina en limpio con una ventana de 808 px de alto,
+    // que es la de un portatil normal: el boton de Resolver caia a 1823 px de
+    // alto en una pagina de 2208. O sea, fuera de la primera pantalla, detras
+    // de la rejilla entera de rangos. Y la columna de la derecha repetia tres
+    // veces "resuelve para ver esto" sin que hubiera nada que pulsar a la
+    // vista. Alguien que llega de un enlace no encuentra el programa.
+    //
+    // Aqui no se puede medir el alto de nada, asi que se mira lo que lo
+    // causaba: que el unico sitio donde se arranca el calculo estuviera metido
+    // en un panel. La cabecera es lo unico de la pagina que se ve siempre, asi
+    // que el boton tiene que estar dentro de ella.
+    void the_first_screen_has_the_button_that_solves() {
+        const std::string P = WEBUI_PAGE;
+        const size_t a = P.find("<header>"), b = P.find("</header>");
+        if (!truth("the page has a header", a != std::string::npos &&
+                                            b != std::string::npos && b > a)) return;
+        const std::string cab = P.substr(a, b - a);
+
+        // El que arranca el calculo, y el que lo para al lado.
+        truth("the header can start the solve",
+              cab.find("onclick=\"solve()\"") != std::string::npos,
+              "no hay nada en la cabecera que llame a solve()");
+        truth("and it can stop it too",
+              cab.find("onclick=\"stopSolve()\"") != std::string::npos,
+              "no hay nada en la cabecera que llame a stopSolve()");
+
+        // Y no tiene estado propio: lo copia del de abajo. Dos botones con dos
+        // estados acaban diciendo cosas distintas del mismo solve.
+        const size_t e = P.find("function espejaGo()");
+        if (!truth("the top button copies the bottom one",
+                   e != std::string::npos)) return;
+        const std::string cuerpo = P.substr(e, P.find("\n}", e) - e);
+        for (const char* q : {"'goBtn'", "'goTop'", "disabled", "title"})
+            truth(std::string("and it copies ") + q,
+                  cuerpo.find(q) != std::string::npos, q);
+
+        // Se llama desde los dos sitios donde ese estado cambia: cuando
+        // empieza o para el solve, y cuando llega el estado del servidor.
+        int veces = 0;
+        for (size_t i = P.find("espejaGo();"); i != std::string::npos;
+             i = P.find("espejaGo();", i + 1)) ++veces;
+        truth("and it is called from both places that change it", veces >= 2,
+              std::to_string(veces) + " llamadas");
+
+        // En la mesa no se monta ni se resuelve: alli estorba.
+        truth("and it is not on the table", P.find("body.playing #goTop") !=
+              std::string::npos, "sigue visible jugando");
+    }
+
+    // La pagina no pide ni un fichero, y trae su propio icono.
+    //
+    // MEDIDO con el binario publicado corriendo: el navegador pedia
+    // /favicon.ico nada mas abrir y se llevaba un 404, asi que la pestana salia
+    // en blanco. Para un programa que vive entero dentro de una pestana eso se
+    // nota, y encima delataba algo mas general: nadie vigilaba que la pagina
+    // no empezara a pedir ficheros.
+    //
+    // Y no puede pedirlos. Esto es UN binario: el servidor sirve la pagina y la
+    // API, y nada mas. Una imagen, una hoja de estilo o un script que alguien
+    // saque a un fichero suelto se veria bien aqui, donde el fichero existe, y
+    // llegaria roto a quien se baje el .exe. Asi que todo lo que la pagina
+    // nombra tiene que venir dentro de ella (data:), ser un ancla (#) o ser un
+    // enlace de verdad a fuera (http). Cualquier otra cosa es una ruta que
+    // alguien tendria que servir.
+    void the_page_never_asks_the_server_for_a_file() {
+        const std::string P = WEBUI_PAGE;
+
+        // El icono, dentro de la pagina.
+        const size_t ic = P.find("<link rel=\"icon\"");
+        truth("the tab has an icon", ic != std::string::npos,
+              "no hay <link rel=icon> en la pagina");
+        if (ic != std::string::npos) {
+            const std::string trozo = P.substr(ic, 80);
+            truth("and it travels inside the page",
+                  trozo.find("href=\"data:image/svg") != std::string::npos,
+                  "el icono sale a un fichero aparte");
+        }
+
+        // Y ahora todo lo que la pagina nombra.
+        int ficheros = 0;
+        std::string cuales;
+        for (const char* atr : {"src=\"", "href=\""}) {
+            const std::string a(atr);
+            for (size_t i = P.find(a); i != std::string::npos;
+                 i = P.find(a, i + 1)) {
+                const size_t v = i + a.size();
+                const size_t fin = P.find('\"', v);
+                if (fin == std::string::npos) break;
+                const std::string val = P.substr(v, fin - v);
+                if (val.empty()) continue;
+                if (val.compare(0, 5, "data:") == 0) continue;
+                if (val[0] == '#') continue;
+                if (val.compare(0, 7, "http://") == 0) continue;
+                if (val.compare(0, 8, "https://") == 0) continue;
+                ++ficheros;
+                if (cuales.size() < 120) cuales += " " + val;
+            }
+        }
+        truth("and it asks the server for no files at all", ficheros == 0,
+              std::to_string(ficheros) + " rutas que alguien tendria que "
+              "servir:" + cuales);
+    }
+
     void nothing_throws_a_solve_away_in_silence() {
         const std::string P = WEBUI_PAGE;
         if (!truth("there is one place that asks",
