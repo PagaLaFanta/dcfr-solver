@@ -42,8 +42,14 @@ jobs:
           $exe = ".\build\Release\solver.exe"
           if (-not (Test-Path $exe)) { throw "no esta el binario en $exe" }
           "{0:N1} MB" -f ((Get-Item $exe).Length / 1MB)
-          & $exe --help | Select-Object -First 3
+          # La salida SE GUARDA y luego se mira el codigo, en ese orden.
+          # Encadenando con Select-Object -First, PowerShell corta la tuberia
+          # antes de que el proceso termine y $LASTEXITCODE se queda VACIO: el
+          # `-ne 0` daba verdadero y el paso fallaba con un --help que habia
+          # impreso su texto sin una queja.
+          $salida = & $exe --help
           if ($LASTEXITCODE -ne 0) { throw "--help devolvio $LASTEXITCODE" }
+          $salida | Select-Object -First 3
 
       - name: La batería de regresión
         shell: pwsh
@@ -51,11 +57,15 @@ jobs:
           # --check devuelve != 0 si algo falla, y eso es lo que hace fallar el
           # job. Se enseñan las ultimas lineas, que son las que llevan el
           # recuento; un fallo sale con su nombre entre ellas.
-          & ".\build\Release\solver.exe" --check | Select-Object -Last 40
-          if ($LASTEXITCODE -ne 0) { throw "la bateria fallo con $LASTEXITCODE" }
+          $salida = & ".\build\Release\solver.exe" --check
+          $codigo = $LASTEXITCODE
+          $salida | Select-Object -Last 40
+          if ($codigo -ne 0) { throw "la bateria fallo con $codigo" }
 
       - name: Que el banco de pruebas al menos arranque
         shell: pwsh
         run: |
-          & ".\build\Release\solver.exe" --bench | Select-Object -Last 20
-          if ($LASTEXITCODE -ne 0) { throw "--bench devolvio $LASTEXITCODE" }
+          $salida = & ".\build\Release\solver.exe" --bench
+          $codigo = $LASTEXITCODE
+          $salida | Select-Object -Last 20
+          if ($codigo -ne 0) { throw "--bench devolvio $codigo" }
