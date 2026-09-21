@@ -1,0 +1,71 @@
+name: Bug report / Informe de fallo
+description: Something does not work, or does not work the way the README says it does.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write in English or in Spanish, whichever you prefer.
+        *Escribe en inglés o en español, como prefieras.*
+
+        Two things make a report actionable: **which build** you are on, and
+        **the spot**. Everything else can be guessed; those two cannot.
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Top right of the interface, or `solver --help`.
+      placeholder: "v0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: System
+      options:
+        - Windows (the release binary)
+        - Windows (built from source)
+        - Linux
+        - macOS
+    validations:
+      required: true
+
+  - type: textarea
+    id: spot
+    attributes:
+      label: The spot
+      description: >
+        Board, both ranges, pot, stack, and the bet and raise sizes. The fastest
+        way is to paste the config: `saves/configs/NAME.cfg` is plain text.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected instead
+    validations:
+      required: true
+
+  - type: input
+    id: memory
+    attributes:
+      label: Memory the tree reported
+      description: The number the interface shows before you build it, if you got that far.
+      placeholder: "1.84 GB"
+
+  - type: dropdown
+    id: check
+    attributes:
+      label: Is `solver --check` green?
+      description: >
+        Run it from a terminal in the folder where the binary lives. It takes a
+        few minutes. If it fails, paste the failing lines above — that is a much
+        more specific bug than anything else you could tell us.
+      options:
+        - "Yes, green"
+        - "No, it fails (lines pasted above)"
+        - "I have not run it"

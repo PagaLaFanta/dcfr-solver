@@ -1,0 +1,34 @@
+# -----------------------------------------------------------------------------
+#  Un flop completo, de flop a river.
+#  Uso:  .\solver.exe --script scripts\demo_flop.txt
+#  Aviso: ~1,5 GB y unos minutos. Para algo instantaneo usa demo_turn.txt.
+# -----------------------------------------------------------------------------
+
+board Ah9h4h
+range oop 22+,A2s+,K9s+,Q9s+,J9s+,T9s,98s,ATo+,KJo+
+range ip  22+,A2s+,K9s+,QTs+,JTs,T9s,AJo+,KQo
+set pot 20
+set stack 100
+estimate
+
+solve 200
+freq
+buckets
+
+# ---- bajamos por una linea concreta ----------------------------------------
+cd B12
+cd C
+cd Ts
+freq
+buckets
+combos 10
+
+cd X
+cd X
+cd 2c
+freq
+buckets
+
+cd /
+report report_flop.txt
+quit

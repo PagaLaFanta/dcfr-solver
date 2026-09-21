@@ -1,0 +1,33 @@
+# -----------------------------------------------------------------------------
+#  Turn -> river, con nodelock. Corre en un par de segundos.
+#  Uso:  .\solver.exe --script scripts\demo_turn.txt
+# -----------------------------------------------------------------------------
+
+board Ah9h4hKd
+range oop 22+,A2s+,K9s+,Q9s+,J9s+,T9s,98s,ATo+,KJo+
+range ip  22+,A2s+,K9s+,QTs+,JTs,T9s,AJo+,KQo
+show
+
+solve 600
+freq
+buckets
+
+# ---- una carta de river concreta -------------------------------------------
+cd B13.2
+cd C
+cd Ts
+freq
+buckets
+combos 10
+
+# ---- congelamos a IP en el river: paga siempre con AIR ----------------------
+cd B34.8
+buckets
+lock AIR C=1
+locks
+solve 600
+
+cd /
+buckets
+report report_turn.txt
+quit

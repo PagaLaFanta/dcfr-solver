@@ -1,0 +1,100 @@
+# Publica binarios listos para usar cuando se etiqueta una version.
+#
+#   git tag v0.1.0 && git push origin v0.1.0
+#
+# Los compila la propia CI en cada plataforma, asi que nadie tiene que tener las
+# tres maquinas y nadie sube a mano un binario que no sabe de donde salio.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write        # hace falta para crear la Release
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            nombre: solver-windows-x64.exe
+            ruta: build/Release/solver.exe
+          - os: ubuntu-latest
+            nombre: solver-linux-x64
+            ruta: build/solver
+          - os: macos-latest
+            nombre: solver-macos-arm64
+            ruta: build/solver
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # -march=native compilaria para la maquina de la CI, que no es la de quien
+      # se lo descarga. Para publicar hay que renunciar a eso.
+      - name: Configurar
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DPORTABLE=ON
+
+      - name: Compilar
+        run: cmake --build build --config Release --parallel
+
+      - name: Que pase la bateria antes de publicarse
+        shell: bash
+        run: "${{ matrix.ruta }}" --check | tail -5
+
+      - name: Renombrar
+        shell: bash
+        run: cp "${{ matrix.ruta }}" "${{ matrix.nombre }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.nombre }}
+          path: ${{ matrix.nombre }}
+
+  publicar:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { merge-multiple: true, path: dist }
+      - run: ls -lh dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          body: |
+            Download the binary for your system and run it. No installer, no
+            dependencies, nothing to configure.
+
+            - **Windows**: `solver-windows-x64.exe` — double-click it and it
+              opens in your browser. The first time, Windows will warn that the
+              program is not signed (SmartScreen): *More info* -> *Run anyway*.
+              Code signing costs money every year and this project has none; if
+              you would rather not trust a binary, build it yourself, it takes
+              thirty seconds.
+            - **Linux / macOS**: `chmod +x` it and run `./solver --gui`. These
+              are unsigned too, so macOS Gatekeeper will object.
+
+            Big flop trees want a lot of RAM — the interface tells you how much
+            before it builds anything. See the README.
+
+            ---
+
+            **Español.** Baja el binario de tu sistema y listo: no hay instalador
+            ni dependencias.
+
+            - **Windows**: doble clic y se abre solo en el navegador. La primera
+              vez Windows avisara de que el programa no esta firmado
+              (SmartScreen): *Mas informacion* -> *Ejecutar de todas formas*.
+              Firmar cuesta dinero y este proyecto no lo tiene; si prefieres no
+              fiarte, compilalo tu, que son treinta segundos.
+            - **Linux / macOS**: dale permiso de ejecucion (`chmod +x`) y lanzalo
+              con `./solver --gui`.
+
+            Necesita mucha RAM para arboles de flop grandes. La interfaz te dice
+            cuanta antes de construir nada. Mira el README.

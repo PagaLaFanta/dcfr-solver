@@ -1,0 +1,34 @@
+name: Idea / Propuesta
+description: Something that is not there and should be.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        English or Spanish, whichever you prefer.
+        *En inglés o en español, como prefieras.*
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What you would like to be able to do
+      description: >
+        Describe the study you are trying to do, not only the button you think is
+        missing. The button is often not the shortest way there.
+    validations:
+      required: true
+
+  - type: textarea
+    id: now
+    attributes:
+      label: How you work around it today
+      description: If you do not, say so — that is useful information too.
+
+  - type: markdown
+    attributes:
+      value: |
+        Two things this project is deliberately **not** going to grow, so nobody
+        spends an afternoon writing the proposal:
+
+        - **Preflop.** It is a different problem with a different shape.
+        - **Multiway.** Two players only.

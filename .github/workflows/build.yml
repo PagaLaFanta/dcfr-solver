@@ -1,0 +1,50 @@
+# Compila y pasa la batería en las tres plataformas, en cada cambio.
+#
+# El motor se desarrolla en Windows. El código está escrito para POSIX también
+# -- hay rama de sockets para cada uno y el CMakeLists distingue WIN32, MinGW y
+# MSVC -- pero "está escrito para" no es "funciona en". Esto lo convierte en un
+# hecho comprobado en vez de una intención, sin que nadie tenga que tener las
+# tres máquinas.
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false          # que un fallo en macOS no oculte el de Linux
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Compilar
+        run: cmake --build build --config Release --parallel
+
+      - name: Encontrar el binario
+        shell: bash
+        run: |
+          # MSVC lo mete en build/Release, los demás en build/
+          for p in build/solver build/Release/solver.exe build/solver.exe; do
+            if [ -x "$p" ]; then echo "SOLVER=$p" >> "$GITHUB_ENV"; exit 0; fi
+          done
+          echo "no encuentro el binario"; ls -R build | head -40; exit 1
+
+      - name: La batería de regresión
+        shell: bash
+        run: |
+          "$SOLVER" --check | tail -40
+          # --check devuelve != 0 si algo falla, y eso es lo que hace fallar el job.
+
+      - name: Que el banco de pruebas al menos arranque
+        shell: bash
+        run: "$SOLVER" --bench | tail -20

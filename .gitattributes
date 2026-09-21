@@ -1,0 +1,17 @@
+# Los fuentes se guardan con LF en el repositorio y cada uno los ve como su
+# sistema quiera. Sin esto, el primer commit desde otra maquina reescribe
+# ficheros enteros con un cambio de final de linea y el diff no se puede leer.
+* text=auto
+
+*.hpp  text
+*.cpp  text
+*.md   text
+*.txt  text
+*.yml  text
+*.ps1  text eol=crlf
+*.cmd  text eol=crlf
+
+*.exe  binary
+*.png  binary
+*.jpg  binary
+*.tree binary
