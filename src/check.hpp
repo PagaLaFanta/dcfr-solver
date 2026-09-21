@@ -80,6 +80,7 @@ public:
         the_build_says_which_one_it_is();
         the_readme_names_buttons_that_exist();
         the_help_says_what_it_is_written_to_say();
+        the_console_speaks_one_language();
         a_narrow_window_does_not_squeeze_the_solution();
         the_bars_say_out_loud_that_they_are_bars();
         every_spanish_line_on_screen_has_an_english_one();
@@ -6449,6 +6450,51 @@ private:
               "uno que borres volveria a aparecer al arrancar");
     }
 
+
+    // La consola esta en ingles de arriba abajo, y lo que imprime tambien.
+    //
+    // MEDIDO la noche antes de publicarlo, leyendo la pantalla como la lee
+    // quien no la ha visto: seis sitios se habian quedado en castellano dentro
+    // de una interfaz declarada en ingles. El desglose de la memoria decia
+    // "sellos" y "tablas del reparto"; los tres descuentos de DCFR se
+    // explicaban en castellano; la tabla de familias tenia las cabeceras en
+    // castellano y sus dos bloques tambien; y el listado de guardados decia
+    // RANGOS y (ninguno).
+    //
+    // Ninguna comprobacion lo veia: las que miran idiomas miran LA PAGINA, que
+    // es la que tiene dos. Esta mira lo que sale por la consola y busca
+    // palabras que en ingles no existen.
+    void the_console_speaks_one_language() {
+        Session S;
+        std::string e;
+        if (!truth("a spot for the console", spot(S, "Ah9h4hKd2s", e), e)) return;
+        S.solve(30, 0);
+
+        std::string salida;
+        if (!truth("the console output can be read",
+                   console_says(S, "show\nsaves\nmade\nfreq\nhelp\n", salida),
+                   "no se pudo redirigir stdout")) return;
+        truth("and there is something in it", salida.size() > 800,
+              std::to_string(salida.size()) + " bytes");
+
+        // Palabras que en ingles no existen. Nada de "no" ni "la", que son
+        // ingles tambien o parte de otra palabra: solo las que solo pueden
+        // venir de un texto en castellano.
+        static const char* const CASTELLANO[] = {
+            "categoria", "ninguno", "sellos", "reparto", "arrepentimiento",
+            "solucion", "rangos", "tamano", "arbol", "iteraciones", "mano hecha",
+            "proyecto", "guardar", "fichero", "por hilo", "vuelta",
+        };
+        int cuantas = 0;
+        std::string cuales;
+        for (const char* p : CASTELLANO) {
+            if (salida.find(p) == std::string::npos) continue;
+            ++cuantas;
+            if (cuales.size() < 160) cuales += std::string(" ") + p;
+        }
+        truth("and not a word of it is in Spanish", cuantas == 0,
+              std::to_string(cuantas) + " palabras en castellano:" + cuales);
+    }
 
     // ---------------------------------------------------------------------
     //  EL ENTRENADOR

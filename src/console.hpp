@@ -195,9 +195,9 @@ private:
                     T.num_instanced_nodes(), m.total);
         // Where it goes, because "shrink the sizings" is useless advice when
         // the sizings are not what is costing you.
-        std::printf("        regrets+strategy %.3f  ·  sellos %.3f  ·  tablas del "
-                    "reparto %.3f\n"
-                    "        orden de showdown %.3f  ·  frames por hilo %.3f\n",
+        std::printf("        regrets+strategy %.3f  ·  stamps %.3f  ·  deal "
+                    "tables %.3f\n"
+                    "        showdown order %.3f  ·  per-thread frames %.3f\n",
                     m.buffers, m.stamps, m.tables, m.sweep, m.scratch);
         // The warning used to sit at a hardcoded 4 GB while the build refuses
         // at MAX_MEM_GB: it complained about sizes that were fine and stayed
@@ -416,16 +416,16 @@ private:
         for (int k = 0; k < 2; ++k) {
             const bool tree = (k == 1);
             const std::vector<std::string> v = S.list_saves(tree);
-            std::printf("\n  %s\n", tree ? "TREES (setup + solucion)" : "CONFIGS (solo el setup)");
-            if (v.empty()) { std::printf("    (ninguno)\n"); continue; }
+            std::printf("\n  %s\n", tree ? "TREES (setup + solution)" : "CONFIGS (setup only)");
+            if (v.empty()) { std::printf("    (none)\n"); continue; }
             for (const std::string& n : v)
                 std::printf("    %-32s %s\n", n.c_str(),
                             human_size(S.save_size(tree, n)).c_str());
         }
         {
             const std::vector<std::string> v = S.list_ranges();
-            std::printf("\n  RANGOS (para reutilizar entre spots)\n");
-            if (v.empty()) std::printf("    (ninguno)\n");
+            std::printf("\n  RANGES (to reuse between spots)\n");
+            if (v.empty()) std::printf("    (none)\n");
             for (const std::string& r : v)
                 std::printf("    %-32s %s\n", r.c_str(),
                             human_size(S.range_size(r)).c_str());
@@ -474,9 +474,9 @@ private:
         // The three DCFR discounts, spelled out: three bare Greek letters tell
         // nobody anything, and they are not this solver's invention -- they are
         // the parameters of the algorithm it runs.
-        std::printf("    DCFR  alpha %.2f (olvido del arrepentimiento bueno)  "
-                    "beta %.2f (del malo)  gamma %.2f (peso de las iteraciones "
-                    "viejas)\n",
+        std::printf("    DCFR  alpha %.2f (forgetting good regret)  "
+                    "beta %.2f (bad regret)  gamma %.2f (weight of old "
+                    "iterations)\n",
                     cfg::DCFR_ALPHA, cfg::DCFR_BETA, cfg::DCFR_GAMMA);
         print_size();
         std::printf("  NODE    %s%s\n", S.where().c_str(), S.solved() ? "" : "   (not solved)");
@@ -837,7 +837,7 @@ private:
         std::printf("  %s   %s to act\n", S.where().c_str(),
                     N.player == 0 ? "OOP" : "IP");
         const double combos = N.combos();
-        std::printf("  %-24s %8s %7s %6s", "categoria", "combos", "% rango", "eq%");
+        std::printf("  %-24s %8s %7s %6s", "category", "combos", "% range", "eq%");
         for (int a = 0; a < N.A; ++a) std::printf(" %7s", N.codes[(size_t)a].c_str());
         std::printf("     %s\n", "EV");
         int visto = -1;
@@ -847,7 +847,7 @@ private:
             if (g.kind != visto) {
                 visto = g.kind;
                 std::printf("  %s\n", g.kind == AG_DRAW
-                            ? "-- proyecto --" : "-- mano hecha --");
+                            ? "-- draw --" : "-- made hand --");
             }
             const double parte = N.wtot > 1e-12 ? g.w / N.wtot : 0.0;
             // Una familia que cabe en el board pero que tu rango no tiene sale
