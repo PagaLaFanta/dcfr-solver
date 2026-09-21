@@ -113,8 +113,8 @@ probably is not a promise and it is not offered as if it were tested. See
 [Building it yourself](#building-it-yourself).
 
 The program starts with a spot already loaded — A♥9♥4♥, pot 55, stack 220 — so
-you can press **Solve** and have a strategy in front of you in under a minute
-(45 s measured on the author's machine, 16 threads).
+you can press **Solve** and have a strategy in front of you in about ten seconds
+(10.2 to 12.0 s over three runs on the author's machine, 16 threads).
 
 ### Build it
 
@@ -702,11 +702,20 @@ Measured on the author's machine (Windows, MinGW, `-O3 -march=native`). Run
 All three on the same spot -- A♥ 9♥ 4♥, pot 55, stack 220, the ranges the
 program opens with -- stopping on the 1%-of-pot accuracy target, on 16 threads:
 
-| starting street | tree | to the target |
+| starting street | tree | pressing Solve |
 |---|---|---|
-| river | 8 nodes, 0.02 GB | 64 iterations, **0.02 s** |
-| turn | 883 nodes, 0.05 GB | 64 iterations, **0.55 s** |
-| flop | 43,271 nodes, 0.53 GB | 128 iterations, **45 s** |
+| river | 8 nodes, 0.02 GB | **1.5 s** |
+| turn | 883 nodes, 0.05 GB | **1.6 s** |
+| flop | 43,271 nodes, 0.53 GB | 143 iterations, **11 s** |
+
+Three runs each; the flop landed between 10.2 s and 12.0 s.
+
+The river and the turn take the same time despite the difference in size, and
+that is not the solving. Measuring exploitability costs a full pass of the tree
+for each player, so the solver measures it **at most once every 1.5 seconds**.
+On a river the target is met within the first few dozen iterations and what you
+wait for is that check, not the work. On a flop, where one iteration costs about
+80 ms, the check is free by comparison and the number below is the solving.
 
 The flop is a monotone board with 699 and 598 live combos, which is a wide
 spot; the suits collapse ×6 on it. A big tree with wide ranges runs into

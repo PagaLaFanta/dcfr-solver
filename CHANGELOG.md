@@ -23,6 +23,20 @@ and in a laptop-sized window.
 - **Fixed in the docs**: the README said `saves/` appears “the first time you
   save anything”. It does not — it is written at startup, with the seven
   ranges the binary ships with already inside it.
+- **The performance table was wrong by four times.** It promised 45 s for the
+  flop it opens with; measured three times on the tree it names, it is 10.2 to
+  12.0 s. Measuring also explained why the river and the turn take the same
+  time despite the difference in size: exploitability costs a full pass of the
+  tree per player, so it is measured at most once every 1.5 s, and on a river
+  that wait is the whole wait. Both READMEs now say so, and the suite checks
+  that the two solve paths agree on that number and that the READMEs still
+  explain it.
+- **Fixed a check that could not see what it was checking.** The collision test
+  plays 40 hands and looks at every runout card dealt, but the hand it played
+  folded as soon as it faced a bet, so the hand died on the flop and no turn or
+  river was dealt. It claimed to look at 80 cards; it looked at 18 on the CI
+  runner (where it failed) and 39 here. Now it does not fold, all 80 cards
+  arrive, and the bar is set at 60 so the same mistake cannot hide again.
 
 ## [0.1.1] — 2026-09-21
 

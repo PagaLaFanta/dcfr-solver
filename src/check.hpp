@@ -79,6 +79,7 @@ public:
         nothing_on_screen_is_left_in_english();
         the_build_says_which_one_it_is();
         the_readme_names_buttons_that_exist();
+        the_readme_and_the_code_agree_on_the_wait();
         the_first_screen_has_the_button_that_solves();
         the_page_never_asks_the_server_for_a_file();
         the_help_says_what_it_is_written_to_say();
@@ -4696,6 +4697,56 @@ private:
         S.clear_all_locks();
     }
 
+    // Lo que el README cuenta del tiempo de espera es lo que hace el codigo.
+    //
+    // MEDIDO la noche antes de publicarlo, con el mismo spot que nombra la
+    // tabla: el flop tardaba 10,2-12,0 s y la tabla decia 45 s. Cuatro veces
+    // mas de lo que cuesta. Y al medirlo salio a la luz por que el river y el
+    // turn tardan lo mismo pese a la diferencia de tamano: medir la
+    // explotabilidad cuesta un recorrido entero del arbol por jugador, asi que
+    // no se mide mas de una vez cada segundo y medio. En un river el objetivo
+    // esta alcanzado en las primeras decenas de iteraciones y lo que se espera
+    // es la comprobacion, no el trabajo.
+    //
+    // Eso ya esta escrito en el README, o sea que ahora el README depende de un
+    // numero del codigo. Los dos caminos tienen que llevar el mismo: el
+    // sincrono es el de la consola y el de --script, y el asincrono el de la
+    // interfaz. Un tope que solo valga en uno de los dos hace que el mismo
+    // solve tarde cosas distintas segun por donde se pida.
+    //
+    // Los tiempos en si no se comprueban aqui a proposito: son de ESTA maquina
+    // y el runner de la integracion continua es otra. Para eso esta --bench.
+    void the_readme_and_the_code_agree_on_the_wait() {
+        std::string codigo;
+        if (!leer_fichero("src/session.hpp", codigo)) {
+            truth("the sources are not next to us, so this was not checked", true);
+            return;
+        }
+        int topes = 0;
+        for (size_t i = codigo.find("std::max(1500,"); i != std::string::npos;
+             i = codigo.find("std::max(1500,", i + 1)) ++topes;
+        truth("both solve paths wait the same before measuring", topes == 2,
+              std::to_string(topes) + " topes de 1500 ms, y hay dos caminos");
+
+        std::string en, es;
+        if (!leer_fichero("README.md", en) || !leer_fichero("README.es.md", es)) {
+            truth("the READMEs are not next to us, so this was not checked", true);
+            return;
+        }
+        truth("and the English README says what that wait is",
+              en.find("once every 1.5 seconds") != std::string::npos,
+              "el README ingles ya no lo cuenta");
+        truth("and the Spanish one says it too",
+              es.find("una vez cada segundo y medio") != std::string::npos,
+              "el README castellano ya no lo cuenta");
+
+        // Y que no se haya quedado el numero viejo en ningun sitio.
+        truth("and neither still promises the old number",
+              en.find("45 s") == std::string::npos &&
+              es.find("45 s") == std::string::npos,
+              "sigue prometiendo 45 s");
+    }
+
     // Los botones que manda pulsar el README existen con ese nombre.
     //
     // MEDIDO en la pasada de antes de publicar: el arranque de cinco minutos
@@ -6819,13 +6870,27 @@ private:
             // repartir sin mirarlas choca una vez de cada doce, y probado
             // quitando el filtro la comprobacion pasaba en verde. Cuarenta
             // manos son ochenta cartas repartidas, y ahi no se escapa.
+            //
+            // El heroe NO se tira la mano, y eso es la mitad de la comprobacion.
+            // Tomando siempre la primera accion se tiraba en cuanto veia una
+            // apuesta, la mano se moria en el flop y no se repartia ni turn ni
+            // river: MEDIDO en la integracion continua, 40 manos y 18 cartas
+            // donde este mismo codigo pedia 20. Cuantas llegaban dependia de
+            // cuanto apostara el bot, que se mueve un poco de una maquina a
+            // otra. Pasando de largo del fold llegan las cartas prometidas.
             Trainer T3;
             T3.set_side(0);
             int choques = 0, cartas = 0, jugadas = 0;
             for (int k = 0; k < 40; ++k) {
                 if (!T3.new_hand(S, e)) break;
-                for (int paso = 0; paso < 30 && T3.phase() == Trainer::YOURS; ++paso)
-                    if (!T3.act(S, T3.codes()[0], e)) break;
+                for (int paso = 0; paso < 30 && T3.phase() == Trainer::YOURS; ++paso) {
+                    const std::vector<std::string> ops = T3.codes();
+                    if (ops.empty()) break;
+                    std::string elegida = ops[0];
+                    for (const std::string& c : ops)
+                        if (c != "F") { elegida = c; break; }
+                    if (!T3.act(S, elegida, e)) break;
+                }
                 ++jugadas;
                 for (size_t i = 3; i < T3.board().size(); ++i) {
                     ++cartas;
@@ -6834,7 +6899,13 @@ private:
                         x == T3.villain()[0] || x == T3.villain()[1]) ++choques;
                 }
             }
-            truth("enough hands to see it", jugadas >= 20 && cartas >= 20,
+            // MEDIDO despues de arreglarlo: 40 manos, 80 cartas, que son las dos
+            // de runout de cada una. Se pide 60 y no 80 para dejar sitio a que
+            // el bot se tire alguna en otra maquina, y no 20, que era donde
+            // estaba: con 20 volver a tirar la mano en cuanto ve una apuesta
+            // pasaria desapercibido y esto miraria 18 cartas diciendo que mira
+            // ochenta.
+            truth("enough hands to see it", jugadas >= 20 && cartas >= 60,
                   std::to_string(jugadas) + " manos, " + std::to_string(cartas) + " cartas");
             same("and no card ever comes that somebody is holding", choques, 0);
 

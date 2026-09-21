@@ -113,8 +113,8 @@ distingue WIN32, MinGW y MSVC, así que probablemente compile fuera -- pero
 [Compilarlo tú](#compilarlo-tú).
 
 El programa arranca con un spot puesto — A♥9♥4♥, bote 55, stack 220 — así que
-puedes darle a **Resolver** y tener una estrategia delante en menos de un minuto
-(45 s medidos en la máquina del autor, con 16 hilos).
+puedes darle a **Resolver** y tener una estrategia delante en unos diez segundos
+(de 10,2 a 12,0 s en tres vueltas, en la máquina del autor, con 16 hilos).
 
 ### Compilarlo
 
@@ -716,11 +716,21 @@ Las tres sobre el mismo spot -- A♥ 9♥ 4♥, bote 55, stack 220, los rangos c
 que abre el programa -- parando en el objetivo de precisión del 1% del bote, con
 16 hilos:
 
-| calle inicial | árbol | hasta el objetivo |
+| calle inicial | árbol | al darle a Resolver |
 |---|---|---|
-| river | 8 nodos, 0,02 GB | 64 iteraciones, **0,02 s** |
-| turn | 883 nodos, 0,05 GB | 64 iteraciones, **0,55 s** |
-| flop | 43.271 nodos, 0,53 GB | 128 iteraciones, **45 s** |
+| river | 8 nodos, 0,02 GB | **1,5 s** |
+| turn | 883 nodos, 0,05 GB | **1,6 s** |
+| flop | 43.271 nodos, 0,53 GB | 143 iteraciones, **11 s** |
+
+Tres vueltas cada una; el flop cayó entre 10,2 s y 12,0 s.
+
+El river y el turn tardan lo mismo pese a la diferencia de tamaño, y eso no es
+el cálculo. Medir la explotabilidad cuesta un recorrido entero del árbol por
+jugador, así que el solver no la mide **más de una vez cada segundo y medio**.
+En un river el objetivo está alcanzado en las primeras decenas de iteraciones y
+lo que se espera es esa comprobación, no el trabajo. En un flop, donde una
+iteración cuesta unos 80 ms, la comprobación sale gratis en comparación y el
+número de abajo sí es el cálculo.
 
 El flop es un board monótono con 699 y 598 combos vivos, que es un spot ancho;
 ahí los palos colapsan ×6. Un árbol grande con rangos amplios se va a minutos y
