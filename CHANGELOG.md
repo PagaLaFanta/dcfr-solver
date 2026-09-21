@@ -6,6 +6,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) loosely and
 the project uses [semantic versioning](https://semver.org/): until 1.0.0, the
 minor number moves when something user-visible changes.
 
+## [0.1.2] — 2026-09-21
+
+Another pass over the first thing a newcomer sees, measured in an empty folder
+and in a laptop-sized window.
+
+- **Solve is in the header now.** In an 808px-tall window the button sat at
+  1823px on a 2208px page: off the first screen, behind the entire range grid,
+  while the right-hand column said “solve to see this” three times with nothing
+  in sight to press. It now sits next to the pills that talk about it, and it
+  leaves the screen at the table. It carries no state of its own — it copies
+  the button at the bottom, which already knows whether a range is missing or
+  there are locks waiting to be applied.
+- **A download link at the top** of both READMEs. It was only inside
+  “Quick start”, past the table of contents.
+- **Fixed in the docs**: the README said `saves/` appears “the first time you
+  save anything”. It does not — it is written at startup, with the seven
+  ranges the binary ships with already inside it.
+
 ## [0.1.1] — 2026-09-21
 
 The evening-before-launch pass: looking at the screen the way someone who has

@@ -15,7 +15,7 @@ namespace cfg {
 // esto" hay que saber con QUE build le falla, y sin un numero a la vista la
 // respuesta es "actualiza y prueba", que no es una respuesta. Sale en --help,
 // en la barra de arriba de la interfaz y en el titulo de la pestana.
-inline const char* VERSION = "0.1.1";
+inline const char* VERSION = "0.1.2";
 
 // ---- structural -------------------------------------------------------------
 constexpr int MAX_ACTIONS = 8;    // upper bound on a node's branching factor
