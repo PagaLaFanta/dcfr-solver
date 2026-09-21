@@ -15,6 +15,13 @@ server, no account, no network.
 **Double-click it and it opens in your browser.** From a terminal, `solver --gui`
 does the same thing and plain `solver` gives you the text console.
 
+### **[⬇ Download the latest build](../../releases/latest)**
+
+Windows x64, one `.exe`, about 2 MB. Nothing to install. Windows will warn that
+it is unsigned the first time — [why, and what to
+click](#run-it). Or [build it yourself](#build-it): it takes thirty seconds and
+one compiler.
+
 > 🇪🇸 **[Este README en español](README.es.md)** · the interface itself speaks
 > both languages — the gear in the top right switches instantly.
 
@@ -90,8 +97,10 @@ river that is already dealt.
 ### Run it
 
 1. Download `solver-windows-x64.exe` from the [Releases page](../../releases).
-2. Put it in a folder of its own — it creates a `saves/` directory next to
-   itself the first time you save anything, so `Downloads` is a poor home.
+2. Put it in a folder of its own. The first time it starts it writes a
+   `saves/` directory next to itself and drops the seven ranges it ships with
+   into `saves/ranges/` — that happens on startup, before you save anything,
+   so `Downloads` is a poor home.
 3. **Windows**: double-click it. It opens `http://127.0.0.1:8777` in your
    browser. The first time, Windows will warn that the program is not signed
    (the blue SmartScreen panel): *More info* → *Run anyway*. Code-signing
@@ -957,7 +966,7 @@ thing works at all:
 
 ## More documentation
 
-- **[FAQ](docs/FAQ.md)** (in Spanish) -- the questions everybody asks:
+- **[FAQ](docs/FAQ.md)** -- the questions everybody asks:
   accuracy, memory, why a size truncates, why equity differs per node,
   what the suit collapse is doing.
 - **The headers themselves.** Every rule in the engine has the reason it is

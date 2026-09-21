@@ -15,6 +15,13 @@ servidor, sin cuenta, sin conexión.
 **Doble clic y se abre en el navegador.** Desde una terminal, `solver --gui` hace
 lo mismo, y `solver` a secas te da la consola de texto.
 
+### **[⬇ Bajar la última versión](../../releases/latest)**
+
+Windows x64, un `.exe`, unos 2 MB. No hay nada que instalar. La primera vez
+Windows avisará de que no está firmado — [por qué, y qué
+pulsar](#usarlo). O [compílalo tú](#compilarlo-tú): son treinta segundos y un
+compilador.
+
 > 🇬🇧 **[This README in English](README.md)** · la interfaz habla los dos
 > idiomas — el engranaje de arriba a la derecha los cambia al momento.
 
@@ -90,8 +97,10 @@ repartido.
 ### Usarlo
 
 1. Baja `solver-windows-x64.exe` de la [página de Releases](../../releases).
-2. Ponlo en una carpeta suya: crea un `saves/` al lado la primera vez que
-   guardes algo, así que `Descargas` es mala casa.
+2. Ponlo en una carpeta suya. La primera vez que arranca escribe un `saves/`
+   a su lado y deja dentro de `saves/ranges/` los siete rangos que trae de
+   fábrica — eso pasa al abrirlo, antes de que guardes nada, así que
+   `Descargas` es mala casa.
 3. **Windows**: doble clic. Se abre `http://127.0.0.1:8777` en tu navegador. La
    primera vez Windows avisará de que el programa no está firmado (la pantalla
    azul de SmartScreen): *Más información* → *Ejecutar de todas formas*. Firmar
@@ -977,7 +986,7 @@ razón de que esto funcione:
 
 ## Más documentación
 
-- **[FAQ](docs/FAQ.md)** -- las preguntas que hace todo el mundo: precisión,
+- **[FAQ](docs/FAQ.es.md)** -- las preguntas que hace todo el mundo: precisión,
   memoria, por qué se trunca un tamaño, por qué la equity cambia de nodo a
   nodo, qué hace el colapso de palos.
 - **Las cabeceras.** Cada regla del motor tiene al lado por qué es esa regla,

@@ -1,299 +1,306 @@
-# Preguntas frecuentes
+# Frequently asked questions
 
-## Lo básico
+> 🇪🇸 **[Estas preguntas en español](FAQ.es.md)**
 
-**¿Juega preflop?**
+## The basics
 
-No. Le das un flop, un turn o un river ya repartido, más los rangos con los que
-los dos jugadores llegan ahí. No hay solver de rangos de apertura ni rangos
-preflop predefinidos.
+**Does it play preflop?**
 
-**¿Cuánta memoria necesito de verdad?**
+No. You give it a flop, a turn or a river that is already dealt, plus the ranges
+the two players arrive there with. There is no preflop solver and no built-in
+opening ranges.
 
-Depende del árbol, y mucho:
+**How much memory does it really need?**
 
-| spot | memoria aproximada |
+It depends on the tree, and it depends a lot:
+
+| spot | rough memory |
 |---|---|
-| river, un tamaño de apuesta | decenas de MB |
-| turn, dos tamaños | cientos de MB |
-| flop, dos tamaños + subidas + all-in | **2 a 3 GB** |
-| flop con muchos tamaños | más de 8 GB |
+| river, one bet size | tens of MB |
+| turn, two sizes | hundreds of MB |
+| flop, two sizes + raises + all-in | **2 to 3 GB** |
+| flop with many sizes | over 8 GB |
 
-No es un defecto: un solver de flop replica el subárbol del river a lo largo de
-1.176 runouts. La interfaz te dice cuánto va a ocupar **antes** de construirlo, y
-si te pasas del límite te dice qué recortar. Baja los tamaños de apuesta antes
-que los rangos: cada tamaño extra multiplica.
+That is not a defect: a flop solver replicates the river subtree across 1,176
+runouts. The interface tells you how much it will take **before** it builds
+anything, and if you go over the limit it tells you what to cut. Drop bet sizes
+before you drop ranges — every extra size multiplies.
 
-**¿Funciona en Mac o Linux?**
+**Does it work on Mac or Linux?**
 
-El código está escrito para los dos (hay rama POSIX además de la de Windows) y
-hay Makefile y CMake. Se desarrolla y se prueba a diario en Windows; si lo
-compilas en otro sitio y algo falla, es información útil y agradecida.
+The code is written for both (there is a POSIX branch alongside the Windows
+one) and there is a Makefile and a CMakeLists. It is developed and tested daily
+on Windows; if you build it elsewhere and something breaks, that is useful
+information and it is welcome.
 
-**¿Necesita internet?**
+**Does it need an internet connection?**
 
-No. Corre entero en tu máquina y no habla con nadie. La interfaz es una página
-web servida por el propio programa en `127.0.0.1`, que es la dirección de tu
-ordenador y de nadie más.
+No. It runs entirely on your machine and talks to nobody. The interface is a web
+page served by the program itself on `127.0.0.1`, which is the address of your
+own computer and of nobody else.
 
 ---
 
-## Precisión y resultados
+## Accuracy and results
 
-**¿Es tan preciso como un solver comercial?**
+**Is it as accurate as a commercial solver?**
 
-En todo lo contrastado, sí. Mismo árbol, mismos rangos y mismo spot, los valores
-de juego coinciden a 3-4 decimales en ocho spots distintos, y las estrategias
-coinciden combo a combo. Ver la sección de validación del README.
+In everything that has been compared, yes. Same tree, same ranges, same spot:
+the game values agree to 3-4 decimal places across eight different spots, and
+the strategies agree combo by combo. See the validation section of the README.
 
-Las diferencias que quedan caen siempre en manos **indiferentes** — aquellas
-cuyas acciones valen lo mismo dentro de una centésima de ficha —, donde cualquier
-mezcla es equilibrio y los dos solvers tienen razón.
+The differences that remain always fall on **indifferent** hands — the ones
+whose actions are worth the same to within a hundredth of a chip — where any
+mix is an equilibrium and both solvers are right.
 
-**¿Por qué mi apuesta del 33% sale de 33 fichas y no de 33,4?**
+**Why is my 33% bet 33 chips and not 33.4?**
 
-Porque en una mesa no se apuesta media ficha. Los tamaños se **truncan a fichas
-enteras**, como en cualquier otro solver: un 25% de un bote de 250 son 62,5 y
-el árbol
-construye 62.
+Because you cannot bet half a chip at a table. Sizes are **truncated to whole
+chips**, as in every other solver: 25% of a 250 pot is 62.5 and the tree builds
+62.
 
-Se trunca y no se redondea por dos razones: es lo que hacen los demás, y así nunca se
-apuesta **más** de lo que has pedido.
+It truncates rather than rounds for two reasons: it is what the others do, and
+this way it never bets **more** than you asked for.
 
-El **all-in no se toca**: el tope es el stack que tú has puesto. Si tienes 250,5
-detrás, el all-in son 250,5.
+The **all-in is left alone**: the cap is the stack you set. If you have 250.5
+behind, the all-in is 250.5.
 
-Un efecto secundario a tener en cuenta: un tamaño que dé **menos de una ficha**
-ya no es una apuesta, y el solver lo rechaza diciéndolo en vez de dejarlo caer.
-Con un bote de 20, el más pequeño que cabe es el 5%.
+One side effect worth knowing: a size that comes out to **less than one chip**
+is no longer a bet, and the solver rejects it and says so instead of letting it
+through. With a pot of 20, the smallest that fits is 5%.
 
-**La equity que veo no coincide con la de otro solver.**
+**The equity I see does not match another solver's.**
 
-Comprueba en qué **nodo** estás. La equity es contra el rango con el que el rival
-llega **ahí**, y ese rango cambia con cada acción: el que paga una apuesta llega
-con más mano, así que tu equity baja.
+Check which **node** you are on. Equity is against the range the opponent
+arrives **there** with, and that range changes with every action: whoever calls
+a bet arrives with more hand, so your equity drops.
 
-En `Ah9h4h`, AA vale:
+On `Ah9h4h`, AA is worth:
 
-| dónde | equity |
+| where | equity |
 |---|---|
-| contra el rango entero | **85,0%** |
-| después de que el rival pase | 86,7% |
-| enfrentando su apuesta | **74,4%** |
+| against the whole range | **85.0%** |
+| after the opponent checks | 86.7% |
+| facing their bet | **74.4%** |
 
-Los tres números son correctos y son de sitios distintos. El 85% está verificado
-por tres caminos independientes: nuestro cálculo, una enumeración por fuerza
-bruta de todos los turns y rivers (`tools/eqcheck.cpp`), y un solver comercial,
-que da 0,8500.
+All three numbers are correct and all three are from different places. The 85%
+is verified three independent ways: our own calculation, a brute-force
+enumeration of every turn and river (`tools/eqcheck.cpp`), and a commercial
+solver, which gives 0.8500.
 
-**Mi explotabilidad no coincide con la de otro solver para la misma solución.**
+**My exploitability does not match another solver's for the same solution.**
 
-Ojo con la convención, porque hay un factor de dos. Lo que se enseña fuera es
-la **media** de
-las dos mejores respuestas; internamente aquí se calcula la **suma**. El número
-que ves en la interfaz y el objetivo de precisión ya están convertidos a la
-convención de siempre, así que deberían coincidir. Si comparas números crudos de la
-consola, divide entre dos.
+Watch the convention, because there is a factor of two in it. What is shown
+elsewhere is the **average** of the two best responses; internally this program
+computes the **sum**. The number in the interface and the accuracy target are
+already converted to the usual convention, so they should agree. If you are
+comparing raw numbers from the console, divide by two.
 
-**¿Por qué la explotabilidad sube a veces si le doy más iteraciones?**
+**Why does exploitability sometimes go up when I give it more iterations?**
 
-Porque es así, y no es un fallo. La estrategia media pondera las iteraciones
-recientes con más peso (el exponente gamma de DCFR), así que sigue de cerca a la
-estrategia actual; cuando ésta hace una excursión — por ejemplo, porque una
-acción que no usaba se vuelve rentable —, la media va detrás.
+Because that is how it behaves, and it is not a bug. The average strategy
+weights recent iterations more heavily (the gamma exponent of DCFR), so it
+follows the current strategy closely; when the current strategy takes an
+excursion — because an action it was not using becomes profitable, say — the
+average follows it.
 
-Medido aquí: de 0,0042 a 1.810 iteraciones a 0,0618 a 1.880, y otras dos mil
-iteraciones en recuperarse. Está comprobado que es eso y no corrupción: el bache
-cae en las mismas iteraciones con gamma 1, 2 y 3, y su tamaño crece con gamma.
+Measured here: from 0.0042 at 1,810 iterations to 0.0618 at 1,880, and another
+two thousand iterations to recover. It has been checked that this is what it is
+and not corruption: the bump lands on the same iterations with gamma 1, 2 and 3,
+and its size grows with gamma.
 
-**La consecuencia práctica**: fija un objetivo de precisión, no un número de
-vueltas. Un contador no te dice dónde has caído.
+**The practical consequence**: set an accuracy target, not a number of
+iterations. A counter does not tell you where you landed.
 
-**¿Qué son alpha, beta y gamma?**
+**What are alpha, beta and gamma?**
 
-Los tres descuentos del Discounted CFR, que es el algoritmo que usa esto. **No se
-tocan desde la interfaz a propósito**: están fijos en los valores del artículo
-original y cambiarlos solo altera a qué velocidad converge, no cuál es la
-respuesta. Se explican aquí porque los vas a ver nombrados en la literatura.
+The three discounts of Discounted CFR, which is the algorithm behind this. They
+are **deliberately not exposed in the interface**: they are fixed at the values
+from the original paper, and changing them only alters how fast it converges,
+not what the answer is. They are explained here because you will see them named
+in the literature.
 
-- **alpha (1,5)** — cuánto se descuentan los arrepentimientos **positivos**. Alto
-  significa que lo aprendido hace mucho pesa casi igual que lo de ahora.
-- **beta (0)** — lo mismo para los **negativos**. En 0 se reducen a la mitad cada
-  iteración: una acción que iba mal deja de arrastrar su historia y puede volver
-  a probarse si el rival cambia.
-- **gamma (2)** — cuánto pesan las iteraciones recientes en la **estrategia
-  media**, que es la que se te muestra. Al cuadrado: lo de ahora manda.
+- **alpha (1.5)** — how much **positive** regret is discounted. High means what
+  was learned long ago weighs almost as much as what was learned now.
+- **beta (0)** — the same for **negative** regret. At 0 it is halved every
+  iteration: an action that was going badly stops dragging its history around
+  and can be tried again if the opponent changes.
+- **gamma (2)** — how much recent iterations weigh in the **average strategy**,
+  which is the one you are shown. Squared: what is happening now dominates.
 
-Si quieres experimentar con ellos, están en la consola (`set alpha`, `set beta`,
-`set gamma`).
+If you want to experiment with them, they are in the console (`set alpha`,
+`set beta`, `set gamma`).
 
 ---
 
-## Uso
+## Using it
 
-**¿Puedo usar los rangos que ya tengo?**
+**Can I use the ranges I already have?**
 
-Sí, es el formato que se usa aquí: manos separadas por comas, las puras sin peso
-y las parciales con `:0.5`.
+Yes — that is the format used here: hands separated by commas, pure ones with no
+weight and partial ones with `:0.5`.
 
 ```
 AA,KK,QQ,AKs,A8o:0.5,KQ,KJ,K8o:0.5,Q5s:0.5,J9o:0.5
 ```
 
-Se pega tal cual en la caja *Range text* y la rejilla se pinta sola. Y al revés:
-lo que pintes en la rejilla sale escrito en ese mismo formato, listo para pegar
-donde quieras o guardarlo donde guardes los demás.
+Paste it straight into the *Range text* box and the grid paints itself. And the
+other way round: whatever you paint on the grid comes out written in that same
+format, ready to paste wherever you want or to save where you keep the rest.
 
-Se aceptan además los atajos de siempre — `22+`, `A2s+`, `KTo+`, `55-88`,
-`AsKd` para un combo concreto, `random` para todo — y el diez tanto como `T`
-como `10`.
+The usual shorthands are accepted too — `22+`, `A2s+`, `KTo+`, `55-88`, `AsKd`
+for one specific combo, `random` for everything — and the ten as either `T` or
+`10`.
 
-**Si bloqueo un river, ¿vale solo para esa carta?**
+**If I lock a river, does it only apply to that card?**
 
-Sí: el lock pertenece al **nodo exacto donde estás, con
-la carta repartida dentro**. Bloquear el 3s no bloquea el 3h. Colócate en el
-runout que te interesa (`cd 3s`, o pinchando la carta en el árbol) antes de
-bloquear.
+Yes: the lock belongs to the **exact node you are on, with that card already
+dealt**. Locking the 3s does not lock the 3h. Put yourself on the runout you
+care about (`cd 3s`, or by clicking the card in the tree) before you lock.
 
-Las dos reglas que lo acompañan, medidas:
+The two rules that come with it, both measured:
 
-- **Hacia arriba se recalcula todo.** Congelar un river cambia lo que vale
-  apostar el turn, y el turn se entera. Bloqueando un river de 48 la apuesta del
-  turn se mueve 0,019 de media; bloqueando los 48, 0,190 — diez veces más, con
-  48 veces más futuro tocado.
-- **Hacia abajo no se hereda nada.** Bloquear el turn deja los rivers libres:
-  siguen resolviéndose, cada uno contra el rango que le llega del turn congelado.
+- **Everything above is recomputed.** Freezing a river changes what betting the
+  turn is worth, and the turn finds out. Locking one river out of 48 moves the
+  turn bet by 0.019 on average; locking all 48 moves it by 0.190 — ten times
+  more, with 48 times more future touched.
+- **Nothing below is inherited.** Locking the turn leaves the rivers free: they
+  keep solving, each against the range that reaches it from the frozen turn.
 
-Un lock sobre un turn o un flop no tiene esta distinción, porque esa decisión se
-toma **una sola vez, antes** de que caiga ninguna carta.
+A lock on a turn or a flop does not have this distinction, because that decision
+is taken **once, before** any card falls.
 
-**¿Qué es el nodelocking y cómo se usa aquí?**
+**What is nodelocking and how does it work here?**
 
-Es fijar lo que hace una parte del rango en un nodo, para ver cómo se adapta el
-resto del árbol. El flujo es el de siempre:
+It is fixing what part of a range does at a node, to see how the rest of the
+tree adapts. The flow is the usual one:
 
-1. Resuelve.
-2. Navega hasta el nodo que te interesa y mira la estrategia.
-3. Abre **Nodelock**, elige la acción y **pinta** las manos que quieres fijar. Se
-   pinta combo a combo y con el peso que elijas, no clase a clase.
-4. Vuelve a resolver: lo pintado se queda quieto y el resto se readapta.
+1. Solve.
+2. Navigate to the node you care about and look at the strategy.
+3. Open **Nodelock**, pick the action and **paint** the hands you want to fix.
+   It paints combo by combo and with the weight you choose, not class by class.
+4. Solve again: what you painted stays put and the rest re-adapts.
 
-**El colapso de palos se apaga o se recorta si el lock nombra cartas concretas**
-(`AsKs`), porque entonces los palos dejan de ser intercambiables. La interfaz te
-lo dice. Si fijas por rangos (`QQ+`) no pierdes nada.
+**Suit collapsing is switched off, or trimmed, if the lock names specific
+cards** (`AsKs`), because at that point suits stop being interchangeable. The
+interface tells you so. If you fix by ranges (`QQ+`) you lose nothing.
 
-**¿Por qué a veces dice "suits collapsed x6" y otras x2 o nada?**
+**Why does it sometimes say "suits collapsed x6" and other times x2 or nothing?**
 
-(El colapso está siempre activo; no es una opción. Lo que
-varía es cuánto se puede aprovechar.)
+(Collapsing is always on; it is not an option. What varies is how much of it can
+be exploited.)
 
-Dos runouts que solo se diferencian en un intercambio de palos son la misma
-decisión, así que se resuelve uno y el otro se lee permutando. Cuánto se ahorra
-depende del board: un flop monótono deja tres palos libres (grupo de 6), un
-two-tone deja dos (grupo de 2), un arcoíris ninguno.
+Two runouts that differ only by a swap of suits are the same decision, so one is
+solved and the other is read off by permuting it. How much this saves depends on
+the board: a monotone flop leaves three suits free (a group of 6), a two-tone
+leaves two (a group of 2), a rainbow leaves none.
 
-Y depende de tus rangos: solo se colapsa por las permutaciones que **tus rangos
-también sobreviven**. Un rango sin diamantes recorta el grupo.
+And it depends on your ranges: it only collapses by the permutations **your
+ranges also survive**. A range with no diamonds in it trims the group.
 
-**¿Puedo guardar un rango para no repintarlo cada vez?**
+**Can I save a range so I do not have to repaint it every time?**
 
-Sí. Debajo de la rejilla hay un nombre y los botones **Guardar** / **Cargar** /
-**Borrar**. Guarda el lado que tengas abierto en las pestañas (OOP o IP).
+Yes. Under the grid there is a name and the **Save** / **Load** / **Delete**
+buttons. It saves whichever side you have open in the tabs (OOP or IP).
 
-El rango se guarda **sin el jugador dentro**, a propósito: uno guardado desde OOP
-se puede cargar en IP, que es justo lo que quieres al montar el mismo spot desde
-el otro lado. Son ficheros de texto diminutos en `saves/ranges/`, así que se
-pueden editar con el bloc de notas o pasar a otra persona.
+A range is saved **without the player inside it**, on purpose: one saved from
+OOP can be loaded into IP, which is exactly what you want when building the same
+spot from the other seat. They are tiny text files in `saves/ranges/`, so you
+can edit them in a text editor or pass them to somebody else.
 
-En la consola: `save range <nombre> oop|ip`, `load range <nombre> oop|ip`,
-`delete range <nombre>`, y `saves` los lista.
+From the console: `save range <name> oop|ip`, `load range <name> oop|ip`,
+`delete range <name>`, and `saves` lists them.
 
-**¿Puedo guardar un árbol resuelto?**
+**Can I save a solved tree?**
 
-Sí, con el botón *Guardar tree*. Ocupa lo suyo — un flop resuelto son decenas de
-megas — porque guarda los arrepentimientos y la estrategia acumulados, que es lo
-que hace falta para seguir resolviendo donde lo dejaste. Las configuraciones se
-guardan aparte y pesan medio kilobyte.
+Yes, with the *Save tree* button. It takes real space — a solved flop is tens of
+megabytes — because it stores the accumulated regrets and strategy, which is
+what is needed to carry on solving where you left off. Configurations are saved
+separately and weigh half a kilobyte.
 
 ---
 
-**¿Por qué no me abre si tengo la sala abierta?**
+**Why will it not open while I have a poker room open?**
 
-Porque todas las salas prohiben en sus términos usar ayuda en tiempo real
-mientras juegas, y esto lo es si lo tienes al lado de la mesa. El programa mira
-los procesos al arrancar y no abre; si abres la sala después, se cierra solo.
+Because every room's terms forbid using real-time assistance while you play, and
+this is real-time assistance if you have it next to the table. The program looks
+at the running processes when it starts and refuses to open; if you open a room
+afterwards, it closes itself.
 
-Cubre PokerStars, GGPoker, Winamax, 888poker, CoinPoker e iPoker. Busca marcas
-y no la palabra "poker", así que PokerTracker, Hold'em Manager, Flopzilla y demás
-siguen funcionando: eso lo comprueba la batería.
+It covers PokerStars, GGPoker, Winamax, 888poker, CoinPoker and iPoker. It
+matches brand names and not the word "poker", so PokerTracker, Hold'em Manager,
+Flopzilla and the rest keep working — the suite checks that.
 
-Evita el accidente, que es como pasa de verdad. No evita a quien quiera
-saltárselo, y no pretende otra cosa.
+It prevents the accident, which is how this actually happens. It does not stop
+anyone determined to get around it, and it does not pretend to.
 
-## Jugar contra la solución
+## Playing against the solution
 
-**¿Cómo se puntúa el entrenador?**
+**How does the trainer score me?**
 
-Por **EV perdido**, no por frecuencia. En cada decisión tuya se mira lo que vale
-cada acción **para la mano exacta que llevas** —los mismos números que pinta la
-rejilla en modo EV— y se compara la que tomaste con la mejor. La diferencia, en
-fichas, es lo que te costó.
+By **EV lost**, not by frequency. At each of your decisions it looks at what
+each action is worth **for the exact hand you are holding** — the same numbers
+the grid paints in EV mode — and compares the one you took with the best one.
+The difference, in chips, is what it cost you.
 
-Esto importa más de lo que parece. Con una mano que el solver apuesta el 70% de
-las veces, **pasar no es un error** si pasar vale lo mismo: las acciones que se
-mezclan se mezclan *porque* valen lo mismo. Puntuar contra la frecuencia
-castigaría lo que la propia teoría llama indiferente, que es la forma más rápida
-de aprender supersticiones.
+This matters more than it looks. With a hand the solver bets 70% of the time,
+**checking is not a mistake** if checking is worth the same: actions that get
+mixed are mixed *because* they are worth the same. Scoring against the frequency
+would punish what the theory itself calls indifferent, which is the fastest way
+to learn superstitions.
 
-La nota de la sesión es ese EV perdido por decisión, en porcentaje del bote:
-menos del 0,5% es impecable, más del 5% es una fuga.
+The session grade is that EV lost per decision, as a percentage of the pot:
+under 0.5% is flawless, over 5% is a leak.
 
-**El bot me pagó con nada y se llevó el bote. ¿Está roto?**
+**The bot called me with nothing and took the pot. Is it broken?**
 
-No. El bot juega la solución: en cada nodo suyo tira un dado con las frecuencias
-de **su** mano. No sabe lo que tienes y no juega para castigarte, así que a veces
-paga con la peor mano de su rango y liga. El resultado de una mano suelta no dice
-nada —por eso el marcador no lo puntúa— y el EV perdido no depende de cómo caigan
-las cartas.
+No. The bot plays the solution: at each of its nodes it rolls a die with the
+frequencies of **its** hand. It does not know what you have and it is not
+playing to punish you, so sometimes it calls with the worst hand in its range
+and hits. The result of a single hand says nothing — which is why the scoreboard
+does not score it — and EV lost does not depend on how the cards fall.
 
-**¿Por qué al empezar en un nodo de dentro me tocan otras manos?**
+**Why do I get different hands when I start at a node inside the tree?**
 
-Porque la mano se reparte con el rango que **llega a ese nodo**, no con el de
-partida. Si eliges el nodo de después de pagar una apuesta, te tocarán manos que
-pagan. Repartir del rango de partida sería entrenar un spot que no se juega
-nunca: la mitad de las manos no estarían ahí.
+Because the hand is dealt from the range that **reaches that node**, not from
+the starting range. If you pick the node after calling a bet, you will be dealt
+hands that call. Dealing from the starting range would be training a spot that
+is never played: half the hands would not be there.
 
-Las cartas que falten para llegar (el turn, el river) se reparten al azar en cada
-mano, así que entrenas el nodo y no una carta concreta. Si quieres una carta fija,
-resuelve ese board.
+The cards still missing on the way there (the turn, the river) are dealt at
+random every hand, so you train the node and not one particular card. If you
+want a fixed card, solve that board.
 
-**Si cierro y vuelvo, ¿se guarda mi marcador?**
+**If I close it and come back, is my score kept?**
 
-El marcador vive mientras el programa está abierto y se pone a cero con *Empezar
-de cero*. No se guarda en disco: es para una sesión de estudio, no un historial.
+The scoreboard lives as long as the program is open and goes back to zero with
+*Start over*. It is not written to disk: it is for a study session, not a
+history.
 
-**¿Puedo repetir la mano que acabo de destrozar?**
+**Can I replay the hand I just destroyed?**
 
-Sí, y es lo más útil del entrenador. Cada mano lleva una **semilla** a la vista y
-*Repetir esta mano* la vuelve a repartir entera: mismas cartas tuyas, mismas del
-bot, mismo runout. Juega la otra línea y compara lo que costó cada una.
+Yes, and it is the most useful thing in the trainer. Every hand carries a
+**seed** in plain sight and *Replay this hand* deals the whole thing again: your
+same cards, the bot's same cards, the same runout. Play the other line and
+compare what each one cost.
 
-## Licencia y contribuciones
+## Licence and contributing
 
-**¿Puedo venderlo, o venderlo integrado en otra cosa?**
+**Can I sell it, or sell it built into something else?**
 
-Está bajo la GPL v3. Puedes usarlo y modificarlo libremente, incluso con fines
-comerciales, pero si **distribuyes** una versión modificada tienes que publicar
-tu código con la misma licencia. No puedes cerrarlo.
+It is under the GPL v3. You can use it and modify it freely, commercially
+included, but if you **distribute** a modified version you have to publish your
+code under the same licence. You cannot close it.
 
-**¿Cómo colaboro?**
+**How do I contribute?**
 
-Lee primero el README, que está escrito para eso, y los comentarios de las
-cabeceras: cada regla del motor tiene al lado por qué es esa y no otra, con la
-medida que lo decidió. Ahorra repetir callejones sin salida.
+Read the README first, which is written for that, and the comments at the top of
+the headers: every rule in the engine has, right next to it, why it is that one
+and not another, with the measurement that decided it. It saves repeating dead
+ends.
 
-Y una costumbre del proyecto que conviene respetar: **nada se da por mejor sin
-medirlo**, y los resultados negativos se escriben con sus números en vez de
-borrarse.
+And one habit of the project worth respecting: **nothing is assumed to be better
+without measuring it**, and negative results are written down with their numbers
+instead of being deleted.
 
-`solver --check` tiene que quedarse en verde.
+`solver --check` has to stay green.
