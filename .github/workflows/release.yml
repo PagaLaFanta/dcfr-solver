@@ -45,11 +45,13 @@ jobs:
 
       - name: Que pase la bateria antes de publicarse
         shell: bash
-        run: "${{ matrix.ruta }}" --check | tail -5
+        run: |
+          "${{ matrix.ruta }}" --check | tail -5
 
       - name: Renombrar
         shell: bash
-        run: cp "${{ matrix.ruta }}" "${{ matrix.nombre }}"
+        run: |
+          cp "${{ matrix.ruta }}" "${{ matrix.nombre }}"
 
       - uses: actions/upload-artifact@v4
         with:

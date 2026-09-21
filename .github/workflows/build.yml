@@ -47,4 +47,5 @@ jobs:
 
       - name: Que el banco de pruebas al menos arranque
         shell: bash
-        run: "$SOLVER" --bench | tail -20
+        run: |
+          "$SOLVER" --bench | tail -20

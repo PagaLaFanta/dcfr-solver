@@ -71,6 +71,7 @@ public:
         the_english_table_does_not_rot();
         nothing_asks_to_be_translated_and_is_not();
         no_key_has_a_space_stuck_to_it();
+        the_workflows_are_not_broken_yaml();
         the_gear_holds_every_advanced_option();
         taking_the_line_panel_out_left_nothing_behind();
         the_long_notes_are_one_line_until_you_ask();
@@ -4607,6 +4608,57 @@ private:
         if (!f) return false;
         out.assign(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
         return true;
+    }
+
+    // Los workflows tienen que ser YAML de verdad.
+    //
+    // MEDIDO el dia que se publico: los dos estaban rotos y NINGUNO habia
+    // llegado a ejecutarse nunca. GitHub los daba por fallidos en cero
+    // segundos con un "workflow file issue" y sin mas detalle.
+    //
+    // El fallo era este, dos veces:
+    //
+    //     run: "$SOLVER" --bench | tail -20
+    //
+    // Un escalar que EMPIEZA por comilla es una cadena entrecomillada, y lo que
+    // venga detras de la comilla de cierre es un error de sintaxis. Con un
+    // bloque `run: |` delante no pasa.
+    //
+    // Aqui no hay con que parsear YAML, asi que se comprueba exactamente la
+    // regla que se rompio, que ademas es la unica forma razonable de escribir
+    // una orden con comillas dentro.
+    void the_workflows_are_not_broken_yaml() {
+        static const char* const FICH[] = { ".github/workflows/build.yml",
+                                            ".github/workflows/release.yml" };
+        int vistos = 0, malas = 0;
+        std::string cuales;
+        for (const char* f : FICH) {
+            std::string doc;
+            if (!leer_fichero(f, doc)) continue;
+            ++vistos;
+            size_t i = 0;
+            while (i < doc.size()) {
+                size_t fin = doc.find('\n', i);
+                if (fin == std::string::npos) fin = doc.size();
+                const std::string linea = trim(doc.substr(i, fin - i));
+                i = fin + 1;
+                if (linea.rfind("run:", 0) != 0) continue;
+                const std::string resto = trim(linea.substr(4));
+                if (resto.empty()) continue;
+                // Un bloque (`|`, `>`) vale. Empezar por comilla, no.
+                if (resto[0] == '"' || resto[0] == '\'') {
+                    ++malas;
+                    if (cuales.size() < 160)
+                        cuales += std::string(" | ") + f + ": " + linea.substr(0, 60);
+                }
+            }
+        }
+        if (vistos == 0) {
+            truth("the workflows are not next to us, so this was not checked", true);
+            return;
+        }
+        truth("no workflow starts a run: with a quote", malas == 0,
+              std::to_string(malas) + " lineas que no son YAML valido:" + cuales);
     }
 
     void the_readme_names_buttons_that_exist() {
