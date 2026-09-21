@@ -77,7 +77,7 @@ repartido.
 
 ### Usarlo
 
-1. Baja el binario de tu sistema de la [página de Releases](../../releases).
+1. Baja `solver-windows-x64.exe` de la [página de Releases](../../releases).
 2. Ponlo en una carpeta suya: crea un `saves/` al lado la primera vez que
    guardes algo, así que `Descargas` es mala casa.
 3. **Windows**: doble clic. Se abre `http://127.0.0.1:8777` en tu navegador. La
@@ -85,10 +85,15 @@ repartido.
    azul de SmartScreen): *Más información* → *Ejecutar de todas formas*. Firmar
    un ejecutable cuesta dinero todos los años y este proyecto no lo tiene. Si
    prefieres no fiarte de un binario, compílalo tú: son treinta segundos.
-4. **Linux / macOS**: `chmod +x solver-linux-x64 && ./solver-linux-x64 --gui`.
+
+Solo se publica Windows. El código tiene sus ramas de POSIX y el CMakeLists
+distingue WIN32, MinGW y MSVC, así que probablemente compile fuera -- pero
+"probablemente" no se ofrece como si estuviera probado. Ver
+[Compilarlo tú](#compilarlo-tú).
 
 El programa arranca con un spot puesto — A♥9♥4♥, bote 55, stack 220 — así que
-puedes darle a **Resolver** y tener una estrategia delante en unos diez segundos.
+puedes darle a **Resolver** y tener una estrategia delante en menos de un minuto
+(45 s medidos en la máquina del autor, con 16 hilos).
 
 ### Compilarlo
 
@@ -682,12 +687,20 @@ solo quieres medir cuánto tarda la lista, genera el script sin guardar árboles
 Medido en la máquina del autor (Windows, MinGW, `-O3 -march=native`). Ejecuta
 `solver --bench` para tener los números de la tuya en vez de creerte estos.
 
-| spot | tiempo |
-|---|---|
-| river, dos tamaños | segundos |
-| turn, dos tamaños | decenas de segundos |
-| flop monótono, árbol por defecto | ~12 s hasta el 0,66% del bote |
-| flop grande, rangos amplios | minutos |
+Las tres sobre el mismo spot -- A♥ 9♥ 4♥, bote 55, stack 220, los rangos con los
+que abre el programa -- parando en el objetivo de precisión del 1% del bote, con
+16 hilos:
+
+| calle inicial | árbol | hasta el objetivo |
+|---|---|---|
+| river | 8 nodos, 0,02 GB | 64 iteraciones, **0,02 s** |
+| turn | 883 nodos, 0,05 GB | 64 iteraciones, **0,55 s** |
+| flop | 43.271 nodos, 0,53 GB | 128 iteraciones, **45 s** |
+
+El flop es un board monótono con 699 y 598 combos vivos, que es un spot ancho;
+ahí los palos colapsan ×6. Un árbol grande con rangos amplios se va a minutos y
+a gigas -- el número que enseña la interfaz antes de construir es con el que hay
+que contar.
 
 `--bench` puede además `--save` una referencia y `--vs` compararse contra ella,
 que es como se demuestra que un cambio no ha costado velocidad.

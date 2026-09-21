@@ -77,8 +77,7 @@ river that is already dealt.
 
 ### Run it
 
-1. Download the binary for your system from the
-   [Releases page](../../releases).
+1. Download `solver-windows-x64.exe` from the [Releases page](../../releases).
 2. Put it in a folder of its own — it creates a `saves/` directory next to
    itself the first time you save anything, so `Downloads` is a poor home.
 3. **Windows**: double-click it. It opens `http://127.0.0.1:8777` in your
@@ -86,11 +85,15 @@ river that is already dealt.
    (the blue SmartScreen panel): *More info* → *Run anyway*. Code-signing
    certificates cost money every year and this project has none. If you would
    rather not trust a binary, build it yourself — it takes thirty seconds.
-4. **Linux / macOS**: `chmod +x solver-linux-x64 && ./solver-linux-x64 --gui`.
+
+Only Windows is published. The code has its POSIX branches and the CMakeLists
+tells WIN32, MinGW and MSVC apart, so it will probably build elsewhere -- but
+probably is not a promise and it is not offered as if it were tested. See
+[Building it yourself](#building-it-yourself).
 
 The program starts with a spot already loaded — A♥9♥4♥, pot 55, stack 220 — so
-you can press **Solve** and have a strategy in front of you in about ten
-seconds.
+you can press **Solve** and have a strategy in front of you in under a minute
+(45 s measured on the author's machine, 16 threads).
 
 ### Build it
 
@@ -671,12 +674,19 @@ time the list, generate the script without saving trees.
 Measured on the author's machine (Windows, MinGW, `-O3 -march=native`). Run
 `solver --bench` to get the numbers for yours instead of believing these.
 
-| spot | time |
-|---|---|
-| river, two bet sizes | seconds |
-| turn, two bet sizes | tens of seconds |
-| flop, monotone, default tree | ~12 s to 0.66% of pot |
-| flop, big tree, wide ranges | minutes |
+All three on the same spot -- A♥ 9♥ 4♥, pot 55, stack 220, the ranges the
+program opens with -- stopping on the 1%-of-pot accuracy target, on 16 threads:
+
+| starting street | tree | to the target |
+|---|---|---|
+| river | 8 nodes, 0.02 GB | 64 iterations, **0.02 s** |
+| turn | 883 nodes, 0.05 GB | 64 iterations, **0.55 s** |
+| flop | 43,271 nodes, 0.53 GB | 128 iterations, **45 s** |
+
+The flop is a monotone board with 699 and 598 live combos, which is a wide
+spot; the suits collapse ×6 on it. A big tree with wide ranges runs into
+minutes and gigabytes -- the number the interface shows before it builds is the
+one to plan around.
 
 `--bench` can also `--save` a baseline and `--vs` compare against it, which is
 how a change gets proven not to have cost speed.
