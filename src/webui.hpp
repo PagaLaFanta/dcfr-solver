@@ -19,6 +19,7 @@
 #include "msg.hpp"
 #include "session.hpp"
 #include "trainer.hpp"
+#include "rooms.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -31,6 +32,12 @@
 #include <vector>
 
 #ifdef _WIN32
+  // Lo mismo que en main.cpp: sin esto, los macros min/max de windows.h
+  // se llevan por delante cualquier std::max de las cabeceras que vengan
+  // detras, y solo se ve compilando con MSVC.
+  #ifndef NOMINMAX
+    #define NOMINMAX
+  #endif
   #include <winsock2.h>
   #include <ws2tcpip.h>
   typedef SOCKET sock_t;
@@ -258,6 +265,24 @@ public:
             std::system(cmd);
         }
 #endif
+        // El vigilante: si una sala de poker se abre con esto ya abierto, se
+        // cierra solo. Mirar los procesos cuesta un par de milisegundos, asi
+        // que cada tres segundos no se nota y es de sobra: lo que hay que
+        // evitar es tener las dos cosas abiertas a la vez, no reaccionar en el
+        // mismo instante.
+        std::thread vigia([this]() {
+            while (!stop_.load()) {
+                for (int i = 0; i < 30 && !stop_.load(); ++i)
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                if (stop_.load()) break;
+                const std::string sala = rooms::open_room();
+                if (sala.empty()) continue;
+                sala_.assign(sala);
+                shutdown();
+                break;
+            }
+        });
+
         while (!stop_.load()) {
             sock_t cl = accept(srv, nullptr, nullptr);
             if (cl == SOCK_INVALID) {
@@ -282,15 +307,24 @@ public:
                 SOCK_CLOSE(cl);
             }).detach();
         }
+        if (vigia.joinable()) vigia.join();
         const sock_t s = srv_.exchange(SOCK_INVALID);
         if (s != SOCK_INVALID) SOCK_CLOSE(s);
         bound_.store(0);
+        // Si lo cerro una sala, hay que decirlo: si no, la ventana desaparece y
+        // parece que el programa se ha muerto.
+        if (!sala_.empty()) {
+            std::printf("%s", rooms::why_not(sala_).c_str());
+            return 3;
+        }
         return 0;
     }
 
 private:
     Session&   S;
     Trainer    train_;
+    // La sala que obligo a cerrar, si fue eso. Vacio si se cerro por lo normal.
+    std::string sala_;
     int        port_;
     bool       open_ = true;
     bool       quiet_ = false;

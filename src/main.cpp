@@ -27,7 +27,21 @@
 //  un solo aviso; si aparece uno, es que algo se rompio.
 // =============================================================================
 
+// NOMINMAX antes de windows.h, o no compila con Visual Studio.
+//
+// windows.h define `min` y `max` COMO MACROS, y entonces cualquier
+// `std::max(a, b)` de mas abajo se convierte en basura: MSVC contesta
+// "C2589: ( : illegal token on right side of ::" en cards.hpp y en
+// range.hpp, que no tienen nada que ver.
+//
+// MEDIDO en la primera build de la CI, que es la primera vez que esto se
+// compilo con MSVC: cincuenta errores en cabeceras que llevaban meses
+// compilando sin un aviso con MinGW, donde los macros no molestan.
+// session.hpp ya lo hacia bien; aqui entraba windows.h antes que nada.
 #ifdef _WIN32
+  #ifndef NOMINMAX
+    #define NOMINMAX
+  #endif
   #include <winsock2.h>
   #include <windows.h>
 #else
@@ -38,6 +52,7 @@
 #include "bench.hpp"
 #include "default_spot.hpp"
 #include "check.hpp"
+#include "rooms.hpp"
 #include "console.hpp"
 #include "webui_page.hpp"
 #include "webui.hpp"
@@ -48,6 +63,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
+static const char* const NL_DOBLE = "\n  ";
 
 static void usage() {
     std::printf(
@@ -119,6 +136,27 @@ static void set_memory_limit_from_machine() {
     cfg::MAX_MEM_GB = v;
 }
 
+// Con una sala de poker abierta, aqui no se entra.
+//
+// Ver rooms.hpp para el por que. Se mira en los tres sitios por los que se
+// puede llegar a ver una estrategia -- la interfaz, la consola y los scripts --
+// y no en `--help`, `--check` ni `--bench`, que no ensenan ninguna.
+//
+// Si se abrio con doble clic se espera a que pulsen algo: si no, la ventana se
+// cierra tan rapido que nadie llega a leer por que.
+static bool room_is_open(bool doble_clic) {
+    const std::string sala = rooms::open_room();
+    if (sala.empty()) return false;
+    std::printf("%s%s", NL_DOBLE, rooms::why_not(sala).c_str());
+    if (doble_clic) {
+        std::printf("%s", M("  Pulsa Intro para cerrar.\n", "  Press Enter to close.\n"));
+        std::fflush(stdout);
+        std::string basura;
+        std::getline(std::cin, basura);
+    }
+    return true;
+}
+
 int main(int argc, char** argv) {
     set_memory_limit_from_machine();
     std::setvbuf(stdout, nullptr, _IONBF, 0);
@@ -152,6 +190,7 @@ int main(int argc, char** argv) {
     // Sin argumentos y abierto con doble clic: la interfaz, que es lo que
     // espera quien llega. Desde una terminal se mantiene la consola.
     if (args.empty() && launched_by_double_click()) {
+        if (room_is_open(true)) return 3;
         WebUI ui(session, 8777, true);
         return ui.run();
     }
@@ -187,6 +226,7 @@ int main(int argc, char** argv) {
                 if (lower(args[k]) == "--no-open") open_browser = false;
                 else if (parse_int(args[k], p) && p > 0 && p < 65536) port = p;
             }
+            if (room_is_open(false)) return 3;
             WebUI ui(session, port, open_browser);
             return ui.run();
         }
@@ -194,6 +234,7 @@ int main(int argc, char** argv) {
             if (i + 1 >= args.size()) { std::printf("--script needs a file name\n"); return 2; }
             std::ifstream f(args[i + 1].c_str());
             if (!f) { std::printf("cannot open script '%s'\n", args[i + 1].c_str()); return 2; }
+            if (room_is_open(false)) return 3;
             msg::EN = true;
             Console c(session);
             return c.run(f, false);
@@ -206,6 +247,7 @@ int main(int argc, char** argv) {
     // nombres de las columnas -- asi que sus errores tambien. El navegador lo
     // pide en cada peticion y manda sobre esto.
     msg::EN = true;
+    if (room_is_open(false)) return 3;
     Console c(session);
     return c.run(std::cin, true);
 }

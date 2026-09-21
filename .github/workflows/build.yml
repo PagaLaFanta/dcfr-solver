@@ -1,10 +1,11 @@
-# Compila y pasa la batería en las tres plataformas, en cada cambio.
+# Compila y pasa la batería en Windows, en cada cambio.
 #
-# El motor se desarrolla en Windows. El código está escrito para POSIX también
-# -- hay rama de sockets para cada uno y el CMakeLists distingue WIN32, MinGW y
-# MSVC -- pero "está escrito para" no es "funciona en". Esto lo convierte en un
-# hecho comprobado en vez de una intención, sin que nadie tenga que tener las
-# tres máquinas.
+# SOLO Windows, a proposito. El programa se desarrolla, se usa y se reparte en
+# Windows, y es donde esta el Discord al que va: mantener verdes tres
+# plataformas cuesta tiempo de verdad y no lo pide nadie. El codigo tiene sus
+# ramas de POSIX y el CMakeLists distingue WIN32, MinGW y MSVC, asi que
+# probablemente compile fuera -- pero "probablemente" no se ofrece como si
+# estuviera probado, y por eso no se dice que lo este.
 name: build
 
 on:
@@ -17,9 +18,9 @@ jobs:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false          # que un fallo en macOS no oculte el de Linux
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [windows-latest]
 
     steps:
       - uses: actions/checkout@v4

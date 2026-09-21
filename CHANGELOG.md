@@ -61,6 +61,14 @@ while; this is the point at which they get a version number and a download.
 - Seven starter ranges shipped in the binary, written out only when no range of
   your own exists.
 
+### Fair play
+
+- **It will not run next to a poker room.** On start it looks at the running
+  processes and refuses to open if it finds a client for PokerStars, GGPoker,
+  Winamax, 888poker, CoinPoker or iPoker; open one while it is running and it
+  closes itself within three seconds, saying why. It matches brands, never the
+  bare word "poker", so study tools like PokerTracker keep working.
+
 ### Correctness
 
 - `solver --check`: 1,480+ assertions covering hand evaluation, tree building,

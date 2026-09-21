@@ -43,6 +43,7 @@ does the same thing and plain `solver` gives you the text console.
   - [Made hands and draws](#made-hands-and-draws)
 - [The interface](#the-interface)
 - [Playing the tree](#playing-the-tree)
+- [It will not run next to a poker room](#it-will-not-run-next-to-a-poker-room)
 - [Solving many boards overnight](#solving-many-boards-overnight)
 - [Performance](#performance)
 - [Correctness](#correctness)
@@ -518,6 +519,43 @@ They are plain files. `.rng` and `.cfg` are text you can read and edit in
 Notepad. The seven starter ranges shipped in the binary are written into
 `saves/ranges/` **only if that folder has no ranges at all**, so yours are never
 touched and one you delete does not come back.
+
+---
+
+## It will not run next to a poker room
+
+Every poker room's terms forbid real-time assistance while you play, and they
+are right to. A solver open beside the table is grounds for confiscated funds
+and a closed account.
+
+So the program refuses. On start it looks at the running processes, and if it
+finds a poker client it does not open:
+
+```
+  This does not open with a poker room running: PokerStars.
+
+  Every poker room's terms forbid real-time assistance while you
+  play. This program is for studying before and after, not during.
+```
+
+If you open a room while it is already running, it closes itself within three
+seconds and says why.
+
+Covered: **PokerStars, GGPoker, Winamax, 888poker, CoinPoker and iPoker**
+(Titan, Red Star, Betfair, William Hill, NetBet). The list is a table of brand
+fragments at the top of [`src/rooms.hpp`](src/rooms.hpp) -- a room that is
+missing is one line.
+
+It matches **brands**, never the bare word "poker": PokerTracker, Hold'em
+Manager, Hand2Note, Flopzilla, GTO+ and every other study tool keep working,
+and the suite checks exactly that -- a false positive there would make the
+program useless for the people who use it properly.
+
+**What this is and what it is not.** It stops the accident -- the room left
+open from before, the table in the background you forgot about, the "I'll just
+check one thing". That is how it actually happens. It does not stop anyone
+determined to get around it: the code is free and rebuilds in thirty seconds.
+It does not claim otherwise.
 
 ---
 

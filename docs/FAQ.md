@@ -217,6 +217,19 @@ guardan aparte y pesan medio kilobyte.
 
 ---
 
+**¿Por qué no me abre si tengo la sala abierta?**
+
+Porque todas las salas prohiben en sus términos usar ayuda en tiempo real
+mientras juegas, y esto lo es si lo tienes al lado de la mesa. El programa mira
+los procesos al arrancar y no abre; si abres la sala después, se cierra solo.
+
+Cubre PokerStars, GGPoker, Winamax, 888poker, CoinPoker e iPoker. Busca marcas
+y no la palabra "poker", así que PokerTracker, Hold'em Manager, Flopzilla y demás
+siguen funcionando: eso lo comprueba la batería.
+
+Evita el accidente, que es como pasa de verdad. No evita a quien quiera
+saltárselo, y no pretende otra cosa.
+
 ## Jugar contra la solución
 
 **¿Cómo se puntúa el entrenador?**

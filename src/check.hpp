@@ -15,6 +15,7 @@
 // =============================================================================
 
 #include "session.hpp"
+#include "rooms.hpp"
 #include "webui_page.hpp"
 #include "webui.hpp"
 #include "console.hpp"
@@ -72,6 +73,7 @@ public:
         nothing_asks_to_be_translated_and_is_not();
         no_key_has_a_space_stuck_to_it();
         the_workflows_are_not_broken_yaml();
+        it_refuses_to_open_next_to_a_poker_room();
         the_gear_holds_every_advanced_option();
         taking_the_line_panel_out_left_nothing_behind();
         the_long_notes_are_one_line_until_you_ask();
@@ -4659,6 +4661,90 @@ private:
         }
         truth("no workflow starts a run: with a quote", malas == 0,
               std::to_string(malas) + " lineas que no son YAML valido:" + cuales);
+    }
+
+    // Con una sala de poker abierta, esto no se abre.
+    //
+    // Lo que se comprueba aqui no es si en ESTA maquina hay una sala abierta --
+    // eso depende de quien corra la bateria -- sino la regla: que la lista
+    // reconoce los clientes que tiene que reconocer, y sobre todo que NO se
+    // lleva por delante lo que no es una sala.
+    //
+    // Lo segundo importa mas que lo primero. Un falso negativo deja pasar una
+    // sala; un falso positivo deja el programa inservible para alguien que
+    // tiene PokerTracker abierto, que es justo la herramienta con la que se
+    // estudia. Por eso la lista busca marcas y no la palabra "poker".
+    void it_refuses_to_open_next_to_a_poker_room() {
+        // 1. Las salas que se pidieron, con los nombres con los que salen sus
+        //    clientes en el administrador de tareas.
+        struct Caso { const char* proceso; const char* sala; };
+        static const Caso SALAS[] = {
+            { "PokerStars.exe",        "PokerStars" },
+            { "PokerStarsUpdate.exe",  "PokerStars" },
+            { "pokerstars.eu.exe",     "PokerStars" },
+            { "GGPoker.exe",           "GGPoker" },
+            { "Winamax.exe",           "Winamax" },
+            { "winamax poker.exe",     "Winamax" },
+            { "888poker.exe",          "888poker" },
+            { "Poker888.exe",          "888poker" },
+            { "PacificPoker.exe",      "888poker" },
+            { "CoinPoker.exe",         "CoinPoker" },
+            { "TitanPoker.exe",        "iPoker (Titan)" },
+            { "iPokerClient.exe",      "iPoker" },
+        };
+        int mal = 0;
+        std::string cuales;
+        for (const Caso& c : SALAS) {
+            const std::string vista = rooms::room_of_process(c.proceso);
+            if (vista == c.sala) continue;
+            ++mal;
+            if (cuales.size() < 200)
+                cuales += std::string(" | ") + c.proceso + " -> '" + vista + "'";
+        }
+        truth("every room in the list is recognised", mal == 0,
+              std::to_string(mal) + " sin reconocer:" + cuales);
+
+        // 2. Y LO QUE NO ES UNA SALA, no se toca. Un falso positivo aqui deja
+        //    el programa inservible para quien tiene abierto justo lo que se
+        //    usa para estudiar.
+        static const char* const INOCENTES[] = {
+            "PokerTracker4.exe", "HoldemManager3.exe", "Hand2Note.exe",
+            "Flopzilla.exe", "PokerStove.exe", "GTOPlus.exe", "pokersnowie.exe",
+            "solver.exe", "chrome.exe", "notepad.exe", "Discord.exe",
+            "PokerJuice.exe", "equilab.exe",
+        };
+        int falsos = 0;
+        std::string quienes;
+        for (const char* p : INOCENTES) {
+            const std::string vista = rooms::room_of_process(p);
+            if (vista.empty()) continue;
+            ++falsos;
+            if (quienes.size() < 200)
+                quienes += std::string(" | ") + p + " -> '" + vista + "'";
+        }
+        truth("and nothing else is mistaken for one", falsos == 0,
+              std::to_string(falsos) + " falsos positivos:" + quienes);
+
+        // 3. Mirar los procesos de la maquina funciona. No se mira QUE hay --
+        //    depende de quien corra esto -- sino que la lista no viene vacia,
+        //    que es lo que pasaria si la llamada al sistema fallara y dejaria
+        //    el guardia apagado sin decirlo.
+        const std::vector<std::string> procs = rooms::process_names();
+#if defined(_WIN32) || defined(__linux__)
+        truth("the machine's processes can be read", procs.size() > 5,
+              "solo se ven " + std::to_string(procs.size()) + " procesos");
+#else
+        truth("processes are not read on this system, and that is said", true);
+#endif
+
+        // 4. Y el aviso dice QUE sala y POR QUE.
+        const std::string aviso = rooms::why_not("PokerStars");
+        truth("the message names the room",
+              aviso.find("PokerStars") != std::string::npos, aviso.substr(0, 80));
+        truth("and says why", aviso.size() > 120 &&
+              (aviso.find("real-time") != std::string::npos ||
+               aviso.find("tiempo") != std::string::npos),
+              "el aviso no explica por que");
     }
 
     void the_readme_names_buttons_that_exist() {

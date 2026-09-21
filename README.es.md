@@ -43,6 +43,7 @@ lo mismo, y `solver` a secas te da la consola de texto.
   - [Manos hechas y proyectos](#manos-hechas-y-proyectos)
 - [La interfaz](#la-interfaz)
 - [Jugar el árbol](#jugar-el-árbol)
+- [No se abre con una sala abierta](#no-se-abre-con-una-sala-de-poker-abierta)
 - [Resolver muchos boards de noche](#resolver-muchos-boards-de-noche)
 - [Rendimiento](#rendimiento)
 - [Que esté bien](#que-esté-bien)
@@ -528,6 +529,43 @@ Son ficheros normales. Los `.rng` y los `.cfg` son texto que puedes leer y edita
 con el bloc de notas. Los siete rangos de fábrica que trae el binario se escriben
 en `saves/ranges/` **solo si esa carpeta no tiene ningún rango**, así que los
 tuyos no se tocan y uno que borres no vuelve.
+
+---
+
+## No se abre con una sala de poker abierta
+
+Todas las salas prohíben en sus términos usar ayuda en tiempo real mientras
+juegas, y con razón: un solver abierto al lado de la mesa es motivo de
+confiscación de fondos y cierre de cuenta.
+
+Así que el programa se niega. Al arrancar mira los procesos que hay corriendo, y
+si encuentra el cliente de una sala no abre:
+
+```
+  No se abre con una sala de poker abierta: PokerStars.
+
+  Todas las salas prohiben en sus terminos usar ayuda en tiempo
+  real mientras juegas. Este programa es para estudiar antes y
+  despues, no durante.
+```
+
+Y si abres una sala con el programa ya abierto, **se cierra solo** en tres
+segundos y deja escrito el motivo.
+
+Cubre **PokerStars, GGPoker, Winamax, 888poker, CoinPoker e iPoker** (Titan,
+Red Star, Betfair, William Hill, NetBet). La lista es una tabla de trozos de
+marca arriba de [`src/rooms.hpp`](src/rooms.hpp): una sala que falte es una
+línea.
+
+Busca **marcas**, nunca la palabra "poker" a secas: PokerTracker, Hold'em
+Manager, Hand2Note, Flopzilla, GTO+ y cualquier otra herramienta de estudio
+siguen funcionando, y la batería comprueba justo eso — un falso positivo ahí
+dejaría el programa inservible para quien lo usa como se debe.
+
+**Lo que esto es y lo que no es.** Evita el accidente: la sala abierta de antes,
+la mesa en segundo plano que se te olvidó, el "solo miro una cosa rápida". Así
+es como pasa de verdad. No evita a quien quiera saltárselo: el código es libre y
+se recompila en treinta segundos. Tampoco pretende otra cosa.
 
 ---
 
