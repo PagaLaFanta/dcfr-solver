@@ -107,6 +107,13 @@ river that is already dealt.
    certificates cost money every year and this project has none. If you would
    rather not trust a binary, build it yourself — it takes thirty seconds.
 
+4. **To stop it**: close the browser tab. This is a server, and the page is its
+   window — when the last tab goes it says so in the console and exits a few
+   seconds later. It will not do that while a solve is running, nor if no
+   browser ever connected (`--no-open` stays up until you open the page
+   yourself), nor because you left the tab in the background. `Ctrl+C` in the
+   console works too.
+
 Only Windows is published. The code has its POSIX branches and the CMakeLists
 tells WIN32, MinGW and MSVC apart, so it will probably build elsewhere -- but
 probably is not a promise and it is not offered as if it were tested. See

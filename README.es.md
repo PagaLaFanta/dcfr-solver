@@ -107,6 +107,13 @@ repartido.
    un ejecutable cuesta dinero todos los años y este proyecto no lo tiene. Si
    prefieres no fiarte de un binario, compílalo tú: son treinta segundos.
 
+4. **Para pararlo**: cierra la pestaña del navegador. Esto es un servidor y la
+   página es su ventana — cuando se va la última pestaña lo dice por la consola
+   y se cierra unos segundos después. No lo hará con un solve en marcha, ni si
+   no llegó a conectarse ningún navegador (`--no-open` se queda en pie hasta que
+   abras la página tú), ni por dejar la pestaña de fondo. `Ctrl+C` en la
+   consola también vale.
+
 Solo se publica Windows. El código tiene sus ramas de POSIX y el CMakeLists
 distingue WIN32, MinGW y MSVC, así que probablemente compile fuera -- pero
 "probablemente" no se ofrece como si estuviera probado. Ver

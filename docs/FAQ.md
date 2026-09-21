@@ -211,6 +211,34 @@ can edit them in a text editor or pass them to somebody else.
 From the console: `save range <name> oop|ip`, `load range <name> oop|ip`,
 `delete range <name>`, and `saves` lists them.
 
+**Why does the program close when I close the browser tab?**
+
+Because otherwise it did not close at all. This is a server: the window you look
+at is a page it serves, and closing that page used to leave the process running
+with the whole tree still in memory — measured at 551 MB and 19 threads for the
+flop it opens with — with no window, and nothing to stop it but the Task
+Manager. Open the program three times in a week and that is a gigabyte and a
+half held for nothing.
+
+Every tab tells the server it is still there once every ten seconds, and says
+goodbye when it goes. When the last one leaves, the program waits a few seconds
+and exits, and it says so in the console before it does.
+
+Three things it will **not** do:
+
+- **Close in the middle of a solve.** Shutting the tab on a forty-minute flop
+  and losing it would be worse than the leak this fixes. It waits for the solve
+  to finish, and goes only if nobody has come back by then.
+- **Close if no browser ever connected.** `solver --gui --no-open` stays up
+  until you open the page yourself. "The page left" and "the page never came"
+  are not the same thing.
+- **Close because the tab was in the background.** Chrome throttles a hidden
+  tab's timers to one beat a minute; the server waits two and a half minutes
+  before it gives a tab up for dead.
+
+If it starts counting down and that was not what you wanted, just open the page
+again — the countdown cancels.
+
 **Can I save a solved tree?**
 
 Yes, with the *Save tree* button. It takes real space — a solved flop is tens of

@@ -2262,6 +2262,46 @@ function actionColor(actions,i){
 // El idioma va en CADA peticion. Los errores los escribe el motor, y el motor
 // no tiene forma de saber en que idioma esta mirando esto quien lo mira: se lo
 // dice la pagina, que es la unica que lo sabe.
+// El latido.
+//
+// MEDIDO despues de que alguien lo notara usandolo: cerrabas la pestana y el
+// proceso seguia vivo con 551 MB dentro, sin ventana y sin nada que pudiera
+// cerrarlo. Ahora cada pestana se inventa un identificador al cargarse, dice
+// que sigue ahi cada diez segundos, y avisa cuando se va.
+//
+// El aviso va por sendBeacon y no por fetch: el navegador lo manda aunque ya
+// este cerrando la ventana, que es justo el momento en que hace falta. Un
+// fetch normal ahi se cancela a mitad.
+//
+// pagehide y no beforeunload: beforeunload no se dispara en el movil ni cuando
+// la pagina se guarda para atras/adelante, y ademas algunos navegadores lo
+// tratan como intencion de preguntar "seguro que quieres salir".
+const YO = Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+function latir(){
+  // Sin await ni reintentos: si un latido se pierde, el siguiente llega en diez
+  // segundos y el servidor espera dos minutos y medio antes de dar a nadie por
+  // muerto.
+  fetch('/api/ping',{method:'POST',
+                     headers:{'Content-Type':'application/x-www-form-urlencoded'},
+                     body:'id='+encodeURIComponent(YO)}).catch(()=>{});
+}
+latir();
+setInterval(latir, 10000);
+
+// Al volver a mirar la pestana, latido inmediato: Chrome frena los
+// temporizadores de las pestanas de fondo, asi que al volver puede llevar un
+// minuto callada y no hay que esperar diez segundos mas para decir que sigue
+// viva.
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) latir(); });
+
+addEventListener('pagehide', ()=>{
+  try{
+    if(navigator.sendBeacon)
+      navigator.sendBeacon('/api/bye', new URLSearchParams({id:YO}));
+  }catch(e){}
+});
+
 async function api(path,form){
   const f2 = form ? Object.assign({}, form, {lang:idioma}) : null;
   const opt=f2?{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},

@@ -27,6 +27,7 @@
 #include <thread>
 #include <cstdio>
 #include <cstring>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -185,6 +186,72 @@ public:
     // ninguna prueba que llamara a los metodos por dentro, hacia falta un
     // socket y peticiones abortadas de verdad. Con puerto 0 lo elige el
     // sistema, asi que la prueba no choca con la interfaz que este abierta.
+    // ---------------------------------------------------------------------
+    //  Cerrarse cuando se va el navegador.
+    //
+    //  MEDIDO despues de que alguien lo notara usandolo: cerrabas la pestana y
+    //  el proceso seguia vivo con 551 MB y 19 hilos dentro, sin ventana y sin
+    //  nada que pudiera cerrarlo. Lo unico que apagaba el servidor era el
+    //  guardia de salas. Abrir el programa tres veces en una semana dejaba
+    //  gigabyte y medio ocupado por nada.
+    //
+    //  La regla esta aqui suelta y es pura a proposito: asi la bateria la
+    //  prueba entera -- los cuatro casos en los que NO hay que cerrarse y el
+    //  unico en el que si -- sin levantar un servidor ni esperar segundos.
+    //
+    //  Los cuatro frenos, y por que cada uno:
+    //
+    //    - Si no ha llegado a conectarse ningun navegador, no se cierra nunca.
+    //      Con --no-open el servidor se levanta para conectarse luego, y la
+    //      bateria y los scripts lo usan asi. "La pagina se fue" y "la pagina
+    //      no vino" no son lo mismo.
+    //    - Si queda alguna pestana viva, no. Cerrar una de dos no cierra el
+    //      programa.
+    //    - Si hay un solve corriendo, tampoco. Cerrar la pestana a media
+    //      resolucion de un flop y perder cuarenta minutos seria peor que la
+    //      fuga que esto arregla. Cuando acabe y siga sin haber nadie, se ira.
+    //    - Y aun sin nadie, hay una espera de gracia: recargar la pagina
+    //      manda primero el adios y solo despues vuelve a latir.
+    static bool hay_que_cerrarse(bool hubo_navegador, size_t pestanas_vivas,
+                                 bool resolviendo, double segundos_sin_nadie,
+                                 double gracia) {
+        if (!hubo_navegador) return false;
+        if (pestanas_vivas > 0) return false;
+        if (resolviendo) return false;
+        return segundos_sin_nadie >= gracia;
+    }
+
+    void vi_una_pestana(const std::string& id) {
+        if (id.empty()) return;
+        std::lock_guard<std::mutex> g(vistos_mtx_);
+        vistos_[id] = std::chrono::steady_clock::now();
+        hubo_navegador_.store(true);
+    }
+
+    void se_fue_una_pestana(const std::string& id) {
+        if (id.empty()) return;
+        std::lock_guard<std::mutex> g(vistos_mtx_);
+        vistos_.erase(id);
+    }
+
+    // Cuantas pestanas siguen vivas, tirando las que llevan demasiado calladas.
+    //
+    //  El plazo es largo a proposito: Chrome frena los temporizadores de una
+    //  pestana que no esta a la vista hasta UNA VEZ POR MINUTO. Con latido de
+    //  diez segundos y plazo de ciento cincuenta hay dos minutos y medio de
+    //  margen sobre el peor caso, asi que tener la pestana de fondo no mata el
+    //  programa. Lo que cierra rapido es el adios, no este plazo.
+    size_t pestanas_vivas() {
+        const auto ahora = std::chrono::steady_clock::now();
+        std::lock_guard<std::mutex> g(vistos_mtx_);
+        for (auto it = vistos_.begin(); it != vistos_.end(); ) {
+            const double callada =
+                std::chrono::duration<double>(ahora - it->second).count();
+            if (callada > mudez_) it = vistos_.erase(it); else ++it;
+        }
+        return vistos_.size();
+    }
+
     void shutdown() {
         stop_.store(true);
         const sock_t s = srv_.exchange(SOCK_INVALID);
@@ -271,15 +338,51 @@ public:
         // evitar es tener las dos cosas abiertas a la vez, no reaccionar en el
         // mismo instante.
         std::thread vigia([this]() {
+            // Desde cuando no queda ninguna pestana. En cero, queda alguna.
+            std::chrono::steady_clock::time_point solo{};
             while (!stop_.load()) {
                 for (int i = 0; i < 30 && !stop_.load(); ++i)
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 if (stop_.load()) break;
+
                 const std::string sala = rooms::open_room();
-                if (sala.empty()) continue;
-                sala_.assign(sala);
-                shutdown();
-                break;
+                if (!sala.empty()) {
+                    sala_.assign(sala);
+                    shutdown();
+                    break;
+                }
+
+                // Y si el navegador se fue, esto no pinta nada encendido.
+                const auto ahora = std::chrono::steady_clock::now();
+                const size_t vivas = pestanas_vivas();
+                if (vivas > 0 || !hubo_navegador_.load() || S.busy()) {
+                    solo = std::chrono::steady_clock::time_point{};
+                    continue;
+                }
+                if (solo == std::chrono::steady_clock::time_point{}) {
+                    solo = ahora;
+                    // Dicho en voz alta: la consola esta a la vista, y asi no
+                    // parece que el programa se muera solo y sin avisar.
+                    if (!quiet_) {
+                        std::printf("  %s\n",
+                                    M("No queda ninguna pestana abierta. Cerrando "
+                                      "en unos segundos; vuelve a abrir la pagina "
+                                      "si no era eso.",
+                                      "No tab is open any more. Closing in a few "
+                                      "seconds; open the page again if that was "
+                                      "not the idea."));
+                        std::fflush(stdout);
+                    }
+                    continue;
+                }
+                const double sin_nadie =
+                    std::chrono::duration<double>(ahora - solo).count();
+                if (hay_que_cerrarse(hubo_navegador_.load(), vivas, S.busy(),
+                                     sin_nadie, gracia_)) {
+                    se_fue_ = true;
+                    shutdown();
+                    break;
+                }
             }
         });
 
@@ -317,6 +420,14 @@ public:
             std::printf("%s", rooms::why_not(sala_).c_str());
             return 3;
         }
+        // Como con las salas: una ventana que desaparece sin explicacion
+        // parece un cuelgue, no un cierre.
+        if (se_fue_ && !quiet_) {
+            std::printf("\n  %s\n\n",
+                        M("Cerrado: se fue el navegador.",
+                          "Closed: the browser went away."));
+            std::fflush(stdout);
+        }
         return 0;
     }
 
@@ -332,6 +443,17 @@ private:
     std::atomic<sock_t> srv_{SOCK_INVALID};
     std::atomic<int>    bound_{0};
     std::mutex api_mtx_;   // serialises everything except progress and stop
+
+    // Las pestanas abiertas, por el identificador que se inventa cada una al
+    // cargarse, y cuando se supo de ellas por ultima vez.
+    std::mutex vistos_mtx_;
+    std::map<std::string, std::chrono::steady_clock::time_point> vistos_;
+    std::atomic<bool> hubo_navegador_{false};
+    // Segundos. Se pueden acortar para probarlo sin esperar minutos.
+    double mudez_  = 150.0;
+    double gracia_ = 10.0;
+    // Si se cerro porque se fue el navegador, hay que decirlo.
+    bool   se_fue_ = false;
 
     // Ceilings on what one connection may make this process allocate.
     enum : size_t { MAX_HEADERS = 1u << 20, MAX_BODY = 1u << 20 };
@@ -432,6 +554,16 @@ private:
         } else if (path == "/api/stop") {
             S.request_stop();
             respond(cl, "{\"ok\":true,\"note\":\"stopping\"}", "application/json");
+        } else if (path == "/api/ping") {
+            // Fuera del candado del solve, como /api/stop: un latido que se
+            // queda esperando a que acabe un flop no es un latido.
+            vi_una_pestana(form.get("id"));
+            respond(cl, "{\"ok\":true}", "application/json");
+        } else if (path == "/api/bye") {
+            // La pestana avisa de que se va. Llega por sendBeacon, que el
+            // navegador manda aunque ya este cerrando la ventana.
+            se_fue_una_pestana(form.get("id"));
+            respond(cl, "{\"ok\":true}", "application/json");
         } else if (path == "/api/flops") {
             respond(cl, api_flops(q), "application/json");
         } else if (path == "/api/state" || path == "/api/node" ||

@@ -210,6 +210,34 @@ pueden editar con el bloc de notas o pasar a otra persona.
 En la consola: `save range <nombre> oop|ip`, `load range <nombre> oop|ip`,
 `delete range <nombre>`, y `saves` los lista.
 
+**¿Por qué se cierra el programa al cerrar la pestaña del navegador?**
+
+Porque si no, no se cerraba nunca. Esto es un servidor: la ventana que miras es
+una página que él sirve, y cerrar esa página dejaba el proceso vivo con el
+árbol entero dentro — medido: 551 MB y 19 hilos con el flop que trae puesto —
+sin ventana y sin nada que pudiera cerrarlo salvo el administrador de tareas.
+Abre el programa tres veces en una semana y son gigabyte y medio ocupados por
+nada.
+
+Cada pestaña le dice al servidor que sigue ahí cada diez segundos, y avisa
+cuando se va. Cuando se va la última, el programa espera unos segundos y se
+cierra, y lo dice por la consola antes de hacerlo.
+
+Tres cosas que **no** hace:
+
+- **Cerrarse a media resolución.** Cerrar la pestaña en un flop de cuarenta
+  minutos y perderlo sería peor que la fuga que esto arregla. Espera a que el
+  solve acabe, y se va solo si para entonces sigue sin haber nadie.
+- **Cerrarse si no se conectó nunca ningún navegador.** `solver --gui --no-open`
+  se queda en pie hasta que abras la página tú. «La página se fue» y «la página
+  no vino» no son lo mismo.
+- **Cerrarse por tener la pestaña de fondo.** Chrome frena los temporizadores de
+  una pestaña que no está a la vista hasta una vez por minuto; el servidor
+  espera dos minutos y medio antes de dar una pestaña por muerta.
+
+Si empieza la cuenta atrás y no era eso lo que querías, vuelve a abrir la
+página: se cancela sola.
+
 **¿Puedo guardar un árbol resuelto?**
 
 Sí, con el botón *Guardar tree*. Ocupa lo suyo — un flop resuelto son decenas de

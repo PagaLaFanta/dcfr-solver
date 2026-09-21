@@ -82,6 +82,8 @@ public:
         the_readme_and_the_code_agree_on_the_wait();
         the_first_screen_has_the_button_that_solves();
         the_page_never_asks_the_server_for_a_file();
+        the_server_does_not_outlive_the_browser();
+        the_page_says_it_is_still_there();
         the_help_says_what_it_is_written_to_say();
         the_console_speaks_one_language();
         a_narrow_window_does_not_squeeze_the_solution();
@@ -3277,6 +3279,82 @@ private:
         truth("and it asks the server for no files at all", ficheros == 0,
               std::to_string(ficheros) + " rutas que alguien tendria que "
               "servir:" + cuales);
+    }
+
+    // El servidor no se queda volando cuando se cierra el navegador.
+    //
+    // MEDIDO despues de que alguien lo notara usandolo: cerrabas la pestana y
+    // el proceso seguia vivo con 551 MB y 19 hilos dentro, sin ventana y sin
+    // nada que pudiera cerrarlo -- lo unico que apagaba esto era el guardia de
+    // salas. Abrir el programa tres veces en una semana dejaba gigabyte y
+    // medio ocupado por nada.
+    //
+    // La regla se comprueba entera aqui y no levantando un servidor, porque lo
+    // que importa son los CUATRO casos en los que NO hay que cerrarse, y
+    // provocar cada uno de verdad costaria minutos de espera. Levantar el
+    // servidor prueba que el cable esta conectado; esto prueba que la decision
+    // es la correcta.
+    void the_server_does_not_outlive_the_browser() {
+        // Muchisimo tiempo sin nadie, para que solo el freno pueda salvarlo.
+        const double MUCHO = 9999.0, GRACIA = 10.0;
+
+        // 1. Si no llego a conectarse ningun navegador, no se cierra jamas.
+        //    Con --no-open el servidor se levanta para conectarse luego, y la
+        //    propia bateria lo usa asi: "la pagina se fue" y "la pagina no
+        //    vino" no son la misma cosa.
+        truth("a server nobody has opened yet stays up",
+              !WebUI::hay_que_cerrarse(false, 0, false, MUCHO, GRACIA));
+
+        // 2. Mientras quede una pestana, no. Cerrar una de dos no cierra el
+        //    programa.
+        truth("and it stays up while a tab is still there",
+              !WebUI::hay_que_cerrarse(true, 1, false, MUCHO, GRACIA));
+
+        // 3. Ni a media resolucion. Cerrar la pestana y perder cuarenta
+        //    minutos de flop seria peor que la fuga que esto arregla.
+        truth("and it never closes mid-solve",
+              !WebUI::hay_que_cerrarse(true, 0, true, MUCHO, GRACIA));
+
+        // 4. Ni antes de la espera de gracia: recargar la pagina manda primero
+        //    el adios y solo despues vuelve a latir.
+        truth("and a reload does not kill it",
+              !WebUI::hay_que_cerrarse(true, 0, false, GRACIA - 0.01, GRACIA));
+
+        // 5. Y con todo eso cumplido, se cierra.
+        truth("but with the browser gone it closes",
+              WebUI::hay_que_cerrarse(true, 0, false, GRACIA, GRACIA));
+        truth("and it stays closed after that",
+              WebUI::hay_que_cerrarse(true, 0, false, MUCHO, GRACIA));
+
+        // El servidor tiene por donde oir el latido y el adios.
+        const std::string P = WEBUI_PAGE;
+        truth("the page knows where to say it is alive",
+              P.find("'/api/ping'") != std::string::npos);
+        truth("and where to say goodbye",
+              P.find("'/api/bye'") != std::string::npos);
+    }
+
+    // Y la pagina lo dice de verdad: identificador, latido y adios.
+    //
+    // El adios tiene que ir por sendBeacon y no por fetch, que es lo unico que
+    // el navegador manda estando ya cerrando la ventana; y engancharse a
+    // pagehide y no a beforeunload, que no se dispara en el movil ni cuando la
+    // pagina se guarda para atras/adelante.
+    void the_page_says_it_is_still_there() {
+        const std::string P = WEBUI_PAGE;
+        truth("every tab gives itself a name", P.find("const YO =") != std::string::npos);
+        truth("and it beats on its own", P.find("setInterval(latir") != std::string::npos);
+        truth("and it says goodbye when it goes",
+              P.find("addEventListener('pagehide'") != std::string::npos);
+        truth("with a beacon, which a closing window still sends",
+              P.find("navigator.sendBeacon('/api/bye'") != std::string::npos);
+
+        // El latido lleva el identificador dentro: sin el, el servidor no sabe
+        // cuantas pestanas hay y cerrar una cerraria el programa entero.
+        const size_t i = P.find("function latir()");
+        if (!truth("there is one place that beats", i != std::string::npos)) return;
+        const std::string cuerpo = P.substr(i, P.find("\n}", i) - i);
+        truth("and it carries the tab's name", cuerpo.find("YO") != std::string::npos);
     }
 
     void nothing_throws_a_solve_away_in_silence() {

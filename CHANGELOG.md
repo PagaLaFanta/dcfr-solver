@@ -6,6 +6,33 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) loosely and
 the project uses [semantic versioning](https://semver.org/): until 1.0.0, the
 minor number moves when something user-visible changes.
 
+## [0.1.3] — 2026-09-22
+
+- **The program no longer outlives the browser.** Reported from actually using
+  it: you closed the tab and the process stayed up — measured at 551 MB and 19
+  threads for the flop it opens with — with no window and nothing to stop it but
+  the Task Manager. The only thing that could shut the server down was the
+  poker-room guard. Open the program three times in a week and that is a
+  gigabyte and a half held for nothing.
+
+  Every tab now names itself, says it is still there once every ten seconds, and
+  says goodbye through `sendBeacon` when it goes — which is the one thing a
+  browser still sends while it is closing a window. When the last tab leaves,
+  the server says so in the console and exits a few seconds later. Measured end
+  to end in a real browser: **9 seconds** from leaving the page to the process
+  being gone.
+
+  Four brakes, each one checked: it never closes **mid-solve** (losing a
+  forty-minute flop would be worse than the leak), never closes if **no browser
+  ever connected** (`--gui --no-open` stays up until you open the page), never
+  closes while **a tab is still alive**, and waits out a grace period so a
+  **reload** does not kill it. A hidden tab is safe too: Chrome throttles
+  background timers to one beat a minute and the server waits two and a half
+  minutes before giving a tab up for dead.
+
+  Documented in both FAQs and both READMEs, and the suite checks the rule
+  exhaustively plus the three wires on the page.
+
 ## [0.1.2] — 2026-09-21
 
 Another pass over the first thing a newcomer sees, measured in an empty folder
