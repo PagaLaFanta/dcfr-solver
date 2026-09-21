@@ -25,6 +25,10 @@ never seen it will look at it.
   enough to hit.
 - Two **screenshots** in the README, and the release notes are written in proper
   Spanish.
+- **Fixed**: six places in the text console were still in Spanish -- the memory
+  breakdown, the DCFR line, the made-hand table headers and the saves listing --
+  inside an interface that says of itself that it is English throughout. The
+  suite now runs the console and looks for words that do not exist in English.
 
 ## [0.1.0] — 2026-09-21
 
