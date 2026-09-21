@@ -6,6 +6,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) loosely and
 the project uses [semantic versioning](https://semver.org/): until 1.0.0, the
 minor number moves when something user-visible changes.
 
+## [0.1.1] — 2026-09-21
+
+The evening-before-launch pass: looking at the screen the way someone who has
+never seen it will look at it.
+
+- **Keyboard at the table**: `F` `X` `C` for fold, check and call, `1` `2` … for
+  the bet and raise sizes in order, `N` next hand, `R` replay it, `A` the
+  advice. Each key is printed in the corner of its own button, and nothing fires
+  while you are typing in a field.
+- A **refresh mid-hand** puts you back at the table instead of the study screen.
+- **Fixed**: the disk note stayed in Spanish on the English screen — two pieces
+  of text ended up in one node and the key stopped matching.
+- **Fixed**: text clipped at 430px wide, in the nodelock dialog and the setup
+  grid.
+- The table is bigger where there is room, the turn and river slots are visible,
+  the strategy grid takes the width it has, and the action buttons are big
+  enough to hit.
+- Two **screenshots** in the README, and the release notes are written in proper
+  Spanish.
+
 ## [0.1.0] — 2026-09-21
 
 First public release. The engine and the interface have been in daily use for a
@@ -82,4 +102,5 @@ while; this is the point at which they get a version number and a download.
 - Engine values cross-checked against an independent commercial solver on
   identical trees, node by node.
 
+[0.1.1]: https://github.com/danidealmeria-alt/dcfr-solver/releases/tag/v0.1.1
 [0.1.0]: https://github.com/danidealmeria-alt/dcfr-solver/releases/tag/v0.1.0
