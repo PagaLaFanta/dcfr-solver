@@ -57,9 +57,12 @@ jobs:
           # --check devuelve != 0 si algo falla, y eso es lo que hace fallar el
           # job. Se enseñan las ultimas lineas, que son las que llevan el
           # recuento; un fallo sale con su nombre entre ellas.
-          $salida = & ".\build\Release\solver.exe" --check
+          # Sin capturar: se imprime segun sale. Guardandola en una
+          # variable, un binario que se muere a media bateria no deja nada
+          # en el log y no hay forma de saber POR DONDE iba -- que es lo
+          # primero que hay que saber. Son mil y pico lineas y no molestan.
+          & ".\build\Release\solver.exe" --check
           $codigo = $LASTEXITCODE
-          $salida | Select-Object -Last 40
           if ($codigo -ne 0) { throw "la bateria fallo con $codigo" }
 
       - name: Que el banco de pruebas al menos arranque
