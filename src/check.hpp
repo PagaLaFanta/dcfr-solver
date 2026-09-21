@@ -45,7 +45,22 @@ public:
     explicit Checks(bool record) : record_(record) {}
 
     int run() {
-        std::setvbuf(stdout, nullptr, _IOLBF, 0);
+        // Sin buffer, y no por linea.
+        //
+        // `setvbuf(stdout, nullptr, _IOLBF, 0)` es un PARAMETRO INVALIDO para
+        // el CRT de Visual Studio: con _IOLBF el tamano tiene que estar entre
+        // 2 e INT_MAX. Y el CRT no devuelve un error, mata el proceso con
+        // __fastfail: 0xC0000409, sin mensaje y sin haber impreso una linea.
+        //
+        // MEDIDO en la primera build de la CI: la bateria se moria en tres
+        // segundos con el log vacio, y la primera linea que imprime esta
+        // dos lineas mas abajo. Con MinGW la misma llamada se traga sin
+        // rechistar, asi que aqui nunca se vio.
+        //
+        // _IONBF hace lo que hacia falta -- que cada linea salga cuando se
+        // escribe, para poder ver por donde va una bateria que tarda diez
+        // minutos -- y ahi el tamano se ignora de verdad.
+        std::setvbuf(stdout, nullptr, _IONBF, 0);
         // Con que idioma ARRANCA el programa, antes de que nadie pida nada. Se
         // mira aqui porque es lo unico que se puede mirar: en cuanto llega la
         // primera peticion el servidor lo pone, y la consola tambien.
