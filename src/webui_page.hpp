@@ -107,6 +107,16 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
     main{flex-wrap:wrap}
     .col-l{flex:1 1 100%;max-width:100%;min-width:0}
     .col-r{flex:1 1 100%}
+    /* En una ventana estrecha, las trece columnas del dialogo de nodelock
+       dejan casillas de veintipocos pixeles y "AKo" se queda sin la o.
+       MEDIDO a 430 de ancho: con 11 cabe, con 14 no.
+       La rejilla del montaje no lo necesita: sus casillas son mas anchas
+       porque no comparten sitio con el panel de la derecha. */
+    #lockDlg .grid .cell{font-size:11px}
+    /* Y la del montaje igual. Ojo con la especificidad: `.grid .cell` a secas
+       no vale aqui, porque la regla de 13px de mas abajo empata en peso y gana
+       por ir despues. Un @media no anade peso ninguno. */
+    main .grid .cell{font-size:11px}
   }
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;
          padding:12px;margin-bottom:12px}

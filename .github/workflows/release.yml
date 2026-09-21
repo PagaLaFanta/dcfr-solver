@@ -70,35 +70,57 @@ jobs:
           files: dist/*
           generate_release_notes: true
           body: |
-            Download the binary for your system and run it. No installer, no
-            dependencies, nothing to configure.
+            Un solver de póker postflop para No Limit Hold'em que corre en tu
+            propio ordenador y se maneja desde el navegador. Sin instalador, sin
+            dependencias, sin cuenta y sin conexión: un solo `.exe`.
 
-            - **Windows**: `solver-windows-x64.exe` — double-click it and it
-              opens in your browser. The first time, Windows will warn that the
-              program is not signed (SmartScreen): *More info* -> *Run anyway*.
-              Code signing costs money every year and this project has none; if
-              you would rather not trust a binary, build it yourself, it takes
-              thirty seconds.
-            Only Windows is published. The code has its POSIX branches, so it
-            will probably build elsewhere -- but probably is not a promise, and
-            it is not offered as if it were tested.
+            **Descarga `solver-windows-x64.exe` y haz doble clic.** Se abre solo
+            en tu navegador. Déjalo en una carpeta suya: crea un `saves/` al lado
+            la primera vez que guardes algo.
 
-            Big flop trees want a lot of RAM — the interface tells you how much
-            before it builds anything. See the README.
+            La primera vez Windows avisará de que el programa no está firmado
+            (SmartScreen): *Más información* → *Ejecutar de todas formas*. Firmar
+            un ejecutable cuesta dinero todos los años y este proyecto no lo
+            tiene; si prefieres no fiarte de un binario, compílalo tú, que son
+            treinta segundos.
 
-            ---
+            Lo que trae:
 
-            **Español.** Baja el binario de tu sistema y listo: no hay instalador
-            ni dependencias.
+            - Flop, turn o river con rangos completos, nodelocking, rake y
+              objetivo de precisión.
+            - **Entrenador**: juegas el spot contra la solución, con el consejo
+              encendido o apagado, nota por EV perdido y repaso de cada decisión.
+            - **No se abre con una sala de póker abierta** — PokerStars, GGPoker,
+              Winamax, 888, CoinPoker o iPoker. Se estudia antes y después, no
+              durante.
+            - Scripts para resolver listas de boards de noche.
 
-            - **Windows**: doble clic y se abre solo en el navegador. La primera
-              vez Windows avisara de que el programa no esta firmado
-              (SmartScreen): *Mas informacion* -> *Ejecutar de todas formas*.
-              Firmar cuesta dinero y este proyecto no lo tiene; si prefieres no
-              fiarte, compilalo tu, que son treinta segundos.
-            Solo se publica Windows. El codigo tiene sus ramas de POSIX y
+            Un árbol de flop grande pide mucha RAM: la interfaz te dice cuánta
+            antes de construir nada. Empieza por un turn o un river si quieres
+            verlo funcionando en dos segundos.
+
+            Solo se publica Windows. El código tiene sus ramas de POSIX y
             probablemente compile fuera, pero "probablemente" no se ofrece como
             si estuviera probado.
 
-            Necesita mucha RAM para arboles de flop grandes. La interfaz te dice
-            cuanta antes de construir nada. Mira el README.
+            ---
+
+            **English.** A postflop solver for No Limit Hold'em that runs on your
+            own machine and is driven from your browser. One `.exe`, no
+            installer, no dependencies, no account, no network.
+
+            **Download `solver-windows-x64.exe` and double-click it.** Windows
+            will warn that it is not signed (SmartScreen): *More info* → *Run
+            anyway*. Code signing costs money every year and this project has
+            none; build it yourself if you would rather not trust a binary.
+
+            It solves the flop, turn or river with full ranges, locks nodes,
+            takes rake, stops on an accuracy target, writes scripts to solve
+            board lists overnight — and it lets you **play the solved tree
+            against the solution**, scored by the EV you leave behind.
+
+            It also **refuses to open next to a poker room**: every room's terms
+            forbid real-time assistance, and this is for studying before and
+            after, not during.
+
+            Windows only. See the README for everything else.
