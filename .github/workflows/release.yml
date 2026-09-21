@@ -75,8 +75,8 @@ jobs:
             dependencias, sin cuenta y sin conexión: un solo `.exe`.
 
             **Descarga `solver-windows-x64.exe` y haz doble clic.** Se abre solo
-            en tu navegador. Déjalo en una carpeta suya: crea un `saves/` al lado
-            la primera vez que guardes algo.
+            en tu navegador. Déjalo en una carpeta suya: al arrancar escribe un
+            `saves/` a su lado, con los siete rangos que trae de fábrica dentro.
 
             La primera vez Windows avisará de que el programa no está firmado
             (SmartScreen): *Más información* → *Ejecutar de todas formas*. Firmar
