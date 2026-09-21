@@ -40,6 +40,13 @@ jobs:
           done
           echo "no encuentro el binario"; ls -R build | head -40; exit 1
 
+      - name: Que el binario arranca
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse build -Include solver.exe | Select-Object FullName, Length
+          & ".\build\Release\solver.exe" --help
+          Write-Host "codigo de salida: $LASTEXITCODE"
+
       - name: La batería de regresión
         shell: bash
         run: |
