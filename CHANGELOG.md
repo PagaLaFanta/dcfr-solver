@@ -138,5 +138,6 @@ while; this is the point at which they get a version number and a download.
 - Engine values cross-checked against an independent commercial solver on
   identical trees, node by node.
 
-[0.1.1]: https://github.com/danidealmeria-alt/dcfr-solver/releases/tag/v0.1.1
-[0.1.0]: https://github.com/danidealmeria-alt/dcfr-solver/releases/tag/v0.1.0
+[0.1.2]: ../../releases/tag/v0.1.2
+[0.1.1]: ../../releases/tag/v0.1.1
+[0.1.0]: ../../releases/tag/v0.1.0

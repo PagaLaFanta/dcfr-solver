@@ -1,7 +1,7 @@
 # DCFR Solver
 
-[![build](https://github.com/danidealmeria-alt/dcfr-solver/actions/workflows/build.yml/badge.svg)](https://github.com/danidealmeria-alt/dcfr-solver/actions/workflows/build.yml)
-[![release](https://img.shields.io/github/v/release/danidealmeria-alt/dcfr-solver?include_prereleases)](https://github.com/danidealmeria-alt/dcfr-solver/releases)
+[![build](https://github.com/PagaLaFanta/dcfr-solver/actions/workflows/build.yml/badge.svg)](https://github.com/PagaLaFanta/dcfr-solver/actions/workflows/build.yml)
+[![release](https://img.shields.io/github/v/release/PagaLaFanta/dcfr-solver?include_prereleases)](https://github.com/PagaLaFanta/dcfr-solver/releases)
 [![license](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-informational)](#compilarlo-tú)
 
