@@ -46,6 +46,10 @@ while; this is the point at which they get a version number and a download.
 - **Any node can be the starting point**, with the hand dealt from the range
   that reaches it; the runout is re-dealt every hand unless you fix it.
 - Every hand carries a **seed** and can be replayed exactly.
+- **Keyboard**: `F` `X` `C` for fold, check and call, `1` `2` … for the bet and
+  raise sizes, `N` next hand, `R` replay, `A` advice. The key is printed on the
+  button and nothing fires while you are typing in a field.
+- A refresh mid-hand puts you back at the table instead of the study screen.
 
 ### Interface
 

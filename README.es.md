@@ -20,6 +20,18 @@ lo mismo, y `solver` a secas te da la consola de texto.
 
 ---
 
+![El solver, con un flop resuelto](docs/img/estudio.png)
+
+<p align="center"><em>La pantalla de estudio: los rangos a la izquierda, el árbol
+resuelto y la estrategia a la derecha.</em></p>
+
+![Jugando el árbol contra la solución](docs/img/entrenador.png)
+
+<p align="center"><em>Y el entrenador: tú juegas el spot, la solución juega el otro
+asiento, y el consejo está ahí cuando lo quieras.</em></p>
+
+---
+
 ## Índice
 
 - [Qué es](#qué-es)
@@ -615,6 +627,10 @@ juega el otro asiento.
   después de apostar y que me paguen"— una y otra vez. Ahí la mano se reparte con
   el rango que **llega a ese nodo**, no con el de partida, así que te tocan las
   manos que de verdad se juegan ahí.
+- **El teclado.** `F` retirarse, `X` pasar, `C` pagar, `1` `2` … los tamaños de
+  apuesta y subida en orden, `N` otra mano, `R` repetir esta, `A` el consejo. Cada
+  tecla va escrita en la esquina de su propio botón, y no se dispara ninguna
+  mientras escribes en un campo.
 - **La semilla.** Cada mano enseña la suya, y *Repetir esta mano* la vuelve a
   repartir: mismas cartas, mismo runout, mismo dado. Es la única forma de volver
   a la mano que destrozaste y ver cuánto valía la otra línea.

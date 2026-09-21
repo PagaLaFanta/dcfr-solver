@@ -96,6 +96,8 @@ public:
         the_family_table_is_read_at_a_glance();
         the_grid_writes_the_number_it_is_painting();
         the_grid_says_what_a_hand_weighs();
+        a_refresh_does_not_walk_you_off_the_table();
+        the_table_can_be_played_with_the_keyboard();
         the_page_says_which_language_it_wants();
 
         // Three sessions, reused. Building a deal means strength tables for
@@ -5925,6 +5927,79 @@ private:
     // ejecute el JavaScript. Lo que se exige es que las tres piezas esten --
     // nombre de la mano, numero, y que decir cuando no esta dentro --, porque
     // quitar cualquiera de las tres deja un title que no sirve.
+    // Refrescar a media mano no te saca de la mesa.
+    //
+    // La mano la lleva el MOTOR, no la pagina. Refrescando, la pagina volvia al
+    // estudio y la mano seguia abierta por debajo: para continuarla habia que
+    // darle a Jugar y adivinar que seguia ahi. Ahora la pagina pregunta al
+    // arrancar y entra sola si hay una mano en marcha.
+    void a_refresh_does_not_walk_you_off_the_table() {
+        const std::string P = WEBUI_PAGE;
+        truth("the page asks the engine whether a hand is in progress",
+              P.find("api('/api/train',{op:'state'})") != std::string::npos,
+              "la pagina ya no pregunta por la mano al arrancar");
+        truth("and walks back in if there is one",
+              P.find("if(r && r.ok && r.on){ document.body.classList.add('playing')")
+                  != std::string::npos,
+              "preguntar no sirve de nada si no entra");
+    }
+
+    // Jugar con el teclado.
+    //
+    // Cincuenta manos con el raton cansan, y lo que se hace cincuenta veces se
+    // hace con una tecla. Lo que hay que vigilar no es que las teclas existan:
+    // es DONDE no valen.
+    //
+    // Un atajo que se dispara mientras escribes en un campo es una sorpresa
+    // desagradable: pones una semilla, escribes un 1, y acabas de apostar. Por
+    // eso el guardia de los campos de texto es lo primero que se comprueba.
+    void the_table_can_be_played_with_the_keyboard() {
+        const std::string P = WEBUI_PAGE;
+        // El de la mesa, y no el del dialogo de las notas, que tambien escucha
+        // el teclado para cerrarse con Escape. Se busca por su primera linea.
+        const size_t a = P.find("document.addEventListener('keydown', ev=>{");
+        if (!truth("the table listens to the keyboard", a != std::string::npos,
+                   "no hay ningun atajo de teclado")) return;
+        const std::string oyente = P.substr(a, 1500);
+
+        truth("only while you are playing",
+              oyente.find("classList.contains('playing')") != std::string::npos,
+              "las teclas funcionan tambien fuera de la mesa");
+        truth("and never while you are typing in a field",
+              oyente.find("tag==='input'") != std::string::npos &&
+              oyente.find("tag==='textarea'") != std::string::npos &&
+              oyente.find("isContentEditable") != std::string::npos,
+              "escribir en un campo puede disparar una accion");
+        truth("and not with a modifier held down",
+              oyente.find("ev.ctrlKey || ev.altKey || ev.metaKey") != std::string::npos,
+              "un Ctrl+F del navegador acabaria retirando la mano");
+        truth("the letters are the ones on the buttons",
+              oyente.find("k==='f' || k==='x' || k==='c'") != std::string::npos,
+              "las iniciales ya no son F, X y C");
+        truth("and the numbers pick a bet size",
+              oyente.find("k>='1' && k<='9'") != std::string::npos,
+              "los numeros ya no eligen tamano");
+        truth("with one hand more and one hand again when it is over",
+              oyente.find("if(k==='n'){ ev.preventDefault(); trainNew(); }")
+                  != std::string::npos,
+              "no se puede repartir otra mano con el teclado");
+        // Y se VEN: una tecla que no esta escrita en ningun sitio no la usa
+        // nadie. Va en la esquina del propio boton.
+        truth("and every button says which key it is",
+              P.find("<span class=\"key\">'+teclaDe(a,i)+'</span>") != std::string::npos,
+              "los botones no dicen su tecla");
+        truth("with F, X and C where there is no doubt, and a number where there is",
+              P.find("function teclaDe(a, i){") != std::string::npos &&
+              P.find("function apuestaDe(code){") != std::string::npos,
+              "el reparto de teclas cambio");
+        // Y el numero cuenta APUESTAS, no botones: frente a una apuesta los
+        // botones son Fold, Call y Raise, y la subida saliendo con un 3 porque
+        // va tercera no lo entiende nadie.
+        truth("and the numbers count bets, not buttons",
+              P.find("if(!apuestaDe(acciones[j].code)) continue;") != std::string::npos,
+              "los numeros volvieron a contar botones");
+    }
+
     void the_grid_says_what_a_hand_weighs() {
         const std::string P = WEBUI_PAGE;
         const size_t at = P.find("cells[k].title=");
@@ -6112,17 +6187,23 @@ private:
 
         truth("it stopped on the clock", S.timeout_reached(),
               "no dice que parase por el tope de tiempo");
-        // Un segundo de tope, mas lo que tarde la tanda que estuviera corriendo.
-        // Con un tope puesto la primera tanda son cuatro vueltas, asi que lo
-        // peor que puede pasar es pasarse cuatro vueltas DE ESTA MAQUINA, y un
-        // segundo mas de margen por el ruido.
+        // El tope, mas la tanda que estuviera corriendo cuando salto, mas ruido.
         //
-        // Con tandas fijas de 64 esto se iba a cinco segundos y medio en este
-        // spot, que es lo que la comprobacion viene a distinguir: parar cerca
-        // del tope, y no mucho despues. Y 300 vueltas seguidas serian
-        // trescientas veces `por_vuelta`, asi que el margen sigue siendo
-        // estrecho por donde importa.
-        const double margen = 2.0 + 4.0 * por_vuelta;
+        // LA CUENTA, que la primera vez la hice mal y dejo la comprobacion al
+        // borde: el tope es 1 s; las tandas se ajustan para no pasar de 2 s,
+        // pero la PRIMERA con un tope puesto son cuatro vueltas, que en una
+        // maquina lenta pasan de 2 s de largo. Asi que lo que puede tardar una
+        // tanda es el mayor de los dos: 2 s, o cuatro vueltas de esta maquina.
+        // Y un segundo mas por el ruido de una maquina que esta haciendo otras
+        // cosas -- que es lo normal mientras se programa.
+        //
+        // MEDIDO: 3,12 s con 0,25 s por vuelta, con el navegador y dos
+        // capturas de pantalla corriendo al lado. Con el margen de 3,01 que
+        // tenia, fallaba por una decima.
+        //
+        // Sigue siendo estrecho por donde importa: si no parase, 300 vueltas
+        // serian trescientas veces `por_vuelta`, que aqui son 75 segundos.
+        const double margen = 1.0 + (2.0 > 4.0 * por_vuelta ? 2.0 : 4.0 * por_vuelta) + 1.0;
         truth("and it stopped near it, not long after",
               secs >= 0.8 && secs < margen,
               "tardo " + fmt_num(secs) + "s de calculo con un tope de 1 y un " +

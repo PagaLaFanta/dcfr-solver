@@ -45,6 +45,8 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
   .opts .lang button{flex:1}
   .opts .lang button.act{background:var(--accent);color:#0b0e13;border-color:var(--accent)}
   .tbar button.act{background:var(--accent);color:#0b0e13;border-color:var(--accent)}
+  .tbar .teclas{font-size:11px;color:var(--dim);border:1px dashed var(--line);
+                border-radius:10px;padding:2px 8px;cursor:help}
   .opts .sep{border-top:1px solid var(--line);margin:10px 0}
   .opts .kv{display:flex;justify-content:space-between;font-size:11px;
             color:var(--dim);margin:3px 0}
@@ -149,7 +151,12 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
   .grid.strat .cell, .grid.strat .cell.on{color:#12161d}
   .grid.strat .cell .lab{text-shadow:0 1px 2px rgba(255,255,255,.5)}
   .grid .cell .fill{position:absolute;inset:0;z-index:1}
-  .grid.strat{max-width:600px}
+  /* La rejilla de estrategia se lleva el ancho que haya. A 600 se quedaba
+     corta en una pantalla normal -- el panel mide casi 800 y sobraban
+     doscientos pixeles a la derecha -- y es la rejilla que se mira todo el
+     rato, con un nombre y un numero dentro de cada casilla. Plegado el
+     montaje sigue habiendo mas, que es para lo que esta el pliegue. */
+  .grid.strat{max-width:760px}
   /* La casilla de estrategia, como la pinta la referencia.
 
      - el nombre ARRIBA A LA IZQUIERDA y no centrado. Centrado, el color
@@ -568,7 +575,7 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
      de casino al lado de un panel gris canta. Lo justo para que se entienda. */
   .felt{position:relative;padding:20px 10px 16px;
         display:flex;flex-direction:column;align-items:center;gap:10px}
-  .mesa{position:relative;width:100%;max-width:700px;aspect-ratio:1.32;
+  .mesa{position:relative;width:100%;max-width:820px;aspect-ratio:1.32;
         border-radius:50%/40%;
         background:radial-gradient(ellipse at 50% 42%,#20463c 0%,#17322c 55%,#122622 100%);
         border:13px solid #1b1410;
@@ -642,7 +649,7 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
             padding:8px 10px;border-radius:12px;background:#0e1a1799;
             box-shadow:inset 0 0 0 1px #ffffff0a}
   .boardrow .gap{width:56px;height:80px;border-radius:8px;
-                 border:1px dashed #ffffff1f}
+                 border:2px dashed #ffffff26;background:#ffffff08}
 
   .potline{font-size:14px;color:var(--dim);display:flex;align-items:center;gap:8px;
            background:#0c1211aa;border-radius:14px;padding:3px 12px}
@@ -664,11 +671,17 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
 
   .tactions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
             margin-top:12px;min-height:44px}
-  .tactions button{padding:11px 18px;font-size:14px;font-weight:600;border-radius:9px;
-                   min-width:104px;background:var(--panel2);border:1px solid var(--line);
-                   color:var(--fg);cursor:pointer}
+  .tactions button{padding:13px 24px;font-size:15px;font-weight:600;border-radius:10px;
+                   min-width:124px;background:var(--panel2);border:1px solid var(--line);
+                   color:var(--fg);cursor:pointer;transition:transform .08s}
+  .tactions button:active{transform:translateY(1px)}
   .tactions button:hover{border-color:var(--accent)}
   .tactions button .amt{display:block;font-weight:400;color:var(--dim);font-size:12px}
+  /* La tecla, en la esquina del boton. Asi se aprende sola: no hace falta
+     buscarla en ningun sitio, esta donde se mira. */
+  .tactions button{position:relative}
+  .tactions button .key{position:absolute;top:4px;right:6px;font-size:10px;
+                        font-weight:700;opacity:.5;letter-spacing:.04em}
   /* El color dice que es cada accion, el mismo de la rejilla de estrategia. */
   .tactions button.f{background:#2b3c52;border-color:#3f5a78}
   .tactions button.x{background:#25402f;border-color:#3a6a4b}
@@ -716,6 +729,7 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
   .tlog{margin:0;padding-left:16px;font-size:12px;color:var(--dim);max-height:150px;
         overflow:auto}
   .tlog li{margin:1px 0}
+  .tlog li.vacio{list-style:none;margin-left:-16px;opacity:.7;font-style:italic}
   .tlog li.you{color:var(--fg)}
 
   /* El consejo. Una fila por accion: frecuencia en barra y EV en numero. */
@@ -1334,6 +1348,7 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
     <label class="tick" title="Al acabar una mano espera un par de segundos, para que te dé tiempo a ver lo que costó, y reparte la siguiente"><input type="checkbox" id="tAuto">Mano automática</label>
     <button class="sm" onclick="trainRepeat()" title="La misma mano otra vez: mismas cartas, mismo runout">Repetir esta mano</button>
     <button class="sm" onclick="trainNew()">Otra mano</button>
+    <span class="teclas" title="F retirarse · X pasar · C pagar · 1, 2… apostar o subir · N otra mano · R repetirla · A el consejo">teclas</span>
   </div>
 
   <div class="tgrid">
@@ -1898,6 +1913,10 @@ const EN = {
   'When a hand ends it waits a couple of seconds, long enough to see what it cost, and deals the next one',
 'Pincha una para volver a jugarla igual.':'Click one to play it again exactly.',
 'volver a jugarla':'play it again', 'perfecta':'perfect',
+'todavía no ha pasado nada':'nothing has happened yet',
+'teclas':'keys',
+'F retirarse · X pasar · C pagar · 1, 2… apostar o subir · N otra mano · R repetirla · A el consejo':
+  'F fold · X check · C call · 1, 2… bet or raise · N next hand · R replay it · A the advice',
 'PERFECTA':'PERFECT', 'MUY BIEN':'VERY GOOD', 'BIEN':'GOOD',
 'MEJORABLE':'COULD BE BETTER', 'CARA':'EXPENSIVE',
 'no dejaste nada de EV en la mesa':'you left nothing on the table',
@@ -1908,7 +1927,6 @@ const EN = {
 'floja':'weak', '0.5 a 2%       buena':'0.5 to 2%      good',
 'ocultar':'hide', 'ver cuales':'see which',
 
-'· quedan':'·',
 'mano hecha':'made hand', 'proyecto':'draw', 'todo':'all',
 'mirar este punto':'look at this point',
 'se aplican en el siguiente solve; cambiar de board los tira':
@@ -2053,7 +2071,7 @@ const EN = {
 'OOP':'OOP', 'IP':'IP',
 'AA,KK,AKs,A8o:0.5':'AA,KK,AKs,A8o:0.5',
 '3x':'3x', '2.5x':'2.5x', '2,5x':'2,5x', '2x':'2x',
-'Ah9h4h':'Ah9h4h', 'btn-vs-bb-monotono':'btn-vs-bb-monotono',
+'Ah9h4h':'Ah9h4h', 'btn-vs-bb-monotono':'bu-vs-bb-monotone',
 'respetan.':'whole.',
 'solucion anterior. Dale a Resolver.':'previous solution. Press Solve.',
 'fijando':'locking', 'cambios descartados':'changes discarded',
@@ -2831,8 +2849,8 @@ async function refreshSaves(){
   if(dn){
     const libre=(typeof r.freeBytes==='number')?r.freeBytes:-1;
     const apretado=libre>=0 && libre<10*1073741824;
-    dn.innerHTML='Lo guardado ocupa <b>'+fmtBytes(r.savesBytes||0)+'</b>'+
-      (libre>=0?' · quedan <b>'+fmtBytes(libre)+'</b> libres en el disco':'')+
+    dn.innerHTML=t('Lo guardado ocupa')+' <b>'+fmtBytes(r.savesBytes||0)+'</b>'+
+      (libre>=0?' · <b>'+fmtBytes(libre)+'</b> '+t('libres en el disco'):'')+
       (r.nextTreeBytes>0?t(' · guardar este árbol pide ')+fmtBytes(r.nextTreeBytes):'');
     dn.style.color=apretado?'var(--warn,#e0b33a)':'';
   }
@@ -4551,6 +4569,57 @@ function trainSide(n){
 // mano cada vez y no tiene por que llevar la cuenta de lo que ya paso.
 let trainHist=[], trainAutoT=null, trainUltimo='';
 
+// El teclado, jugando.
+//
+// Cincuenta manos con el raton cansan, y lo que se hace cincuenta veces se hace
+// con una tecla. Solo mientras juegas, y NUNCA si estas escribiendo en un campo
+// -- una semilla, un nombre -- que es como un atajo se convierte en una
+// sorpresa desagradable.
+document.addEventListener('keydown', ev=>{
+  if(!document.body.classList.contains('playing')) return;
+  if(ev.ctrlKey || ev.altKey || ev.metaKey) return;
+  const el=ev.target;
+  const tag=(el && el.tagName || '').toLowerCase();
+  if(tag==='input' || tag==='textarea' || tag==='select' ||
+     (el && el.isContentEditable)) return;
+  if(!tr || !tr.on) return;
+  const k=(ev.key||'').toLowerCase();
+
+  // Mano terminada: N reparte la siguiente, R repite esta.
+  if(tr.over){
+    if(k==='n'){ ev.preventDefault(); trainNew(); }
+    else if(k==='r'){ ev.preventDefault(); trainRepeat(); }
+    return;
+  }
+
+  // El consejo se enciende y se apaga sin soltar el teclado.
+  if(k==='a'){
+    ev.preventDefault();
+    const c=document.getElementById('tAdvice');
+    c.checked=!c.checked;
+    trainAdvice();
+    return;
+  }
+
+  const acciones=tr.actions||[];
+  if(!acciones.length) return;
+  let idx=-1;
+  if(k==='f' || k==='x' || k==='c'){
+    idx=acciones.findIndex(a=>(a.code||'')[0].toLowerCase()===k);
+  } else if(k>='1' && k<='9'){
+    // El numero cuenta apuestas y subidas, igual que lo que pone el boton.
+    const n=parseInt(k,10);
+    let visto=0;
+    for(let j=0;j<acciones.length;j++){
+      if(!apuestaDe(acciones[j].code)) continue;
+      if(++visto===n){ idx=j; break; }
+    }
+  }
+  if(idx<0) return;
+  ev.preventDefault();
+  trainAct(acciones[idx].code);
+});
+
 // La mano que acaba de terminar, en una linea. Se queda a la vista mientras
 // juegas la siguiente, que es lo unico que sirve cuando van solas.
 function trainResumenMano(){
@@ -4710,6 +4779,12 @@ function renderTrain(){
 
   // El historial.
   const lg=document.getElementById('tLog'); lg.innerHTML='';
+  if(!(tr.log||[]).length){
+    const li=document.createElement('li');
+    li.className='vacio';
+    li.textContent=t('todavía no ha pasado nada');
+    lg.appendChild(li);
+  }
   (tr.log||[]).forEach(l=>{
     const li=document.createElement('li');
     // El motor escribe la posicion; aqui se lee el nombre, que es lo que se ve
@@ -4729,10 +4804,10 @@ function renderTrain(){
   // Los botones.
   const ac=document.getElementById('tActions'); ac.innerHTML='';
   if(!tr.over && tr.on){
-    (tr.actions||[]).forEach(a=>{
+    (tr.actions||[]).forEach((a,i)=>{
       const b=document.createElement('button');
       b.className=(a.code[0]||'').toLowerCase();
-      let h='<span>'+t(a.label)+'</span>';
+      let h='<span class="key">'+teclaDe(a,i)+'</span><span>'+t(a.label)+'</span>';
       if(typeof a.freq==='number')
         h+='<span class="adv">'+num(100*a.freq,1)+'% · EV '+num(a.ev,2)+'</span>';
       b.innerHTML=h;
@@ -4840,6 +4915,30 @@ function renderTrain(){
 // Jugada perfecta es perfecta: cero, sin matices. No "casi": si en cada
 // decision elegiste una accion que valia tanto como la mejor, no dejaste nada,
 // y decirte otra cosa seria inventarse un error para tener algo que contar.
+// La tecla de cada accion.
+//
+// La inicial donde no hay duda -- F de fold, X de check, C de call -- y el
+// numero para las apuestas y las subidas, que pueden ser varias: con dos
+// tamanos, "B" no dice cual, y 1 y 2 si.
+//
+// Y los numeros cuentan APUESTAS, no botones: frente a una apuesta los botones
+// son Fold, Call y Raise, y que la subida saliera con un 3 porque va tercera no
+// lo entiende nadie. La primera apuesta o subida es el 1, siempre.
+function apuestaDe(code){
+  const k=(code||'')[0];
+  return k!=='F' && k!=='X' && k!=='C';
+}
+function teclaDe(a, i){
+  const k=(a.code||'')[0];
+  if(k==='F') return 'F';
+  if(k==='X') return 'X';
+  if(k==='C') return 'C';
+  let n=1;
+  const l=(tr && tr.actions) ? tr.actions : [];
+  for(let j=0;j<i && j<l.length;j++) if(apuestaDe(l[j].code)) n++;
+  return String(n);
+}
+
 function trainVeredicto(){
   const pasos=(tr && tr.steps) ? tr.steps : [];
   if(!pasos.length)
@@ -4875,6 +4974,17 @@ function trainGrade(sc){
   return '<span class="pill '+cls+'">'+txt+'</span> <span class="advoff">'+
          num(x,2)+t('% del bote por decisión')+'</span>';
 }
+
+// Si estabas jugando una mano y refrescas, sigues en la mesa.
+//
+// El motor lleva la mano, no la pagina: refrescando volvias al estudio con una
+// mano a medias abierta por debajo, y para seguirla habia que darle a Jugar y
+// adivinar que seguia ahi. Se le pregunta al arrancar y se entra si toca.
+(function(){
+  api('/api/train',{op:'state'}).then(r=>{
+    if(r && r.ok && r.on){ document.body.classList.add('playing'); tr=r; renderTrain(); }
+  }).catch(()=>{});
+})();
 
 arrancaIdioma();
 aplicaSetup();

@@ -20,6 +20,18 @@ does the same thing and plain `solver` gives you the text console.
 
 ---
 
+![The solver, with a flop solved](docs/img/estudio.png)
+
+<p align="center"><em>The study screen: ranges on the left, the solved tree and the
+strategy on the right.</em></p>
+
+![Playing the tree against the solution](docs/img/entrenador.png)
+
+<p align="center"><em>And the trainer: you play the spot, the solution plays the other
+seat, and the advice is there when you want it.</em></p>
+
+---
+
 ## Contents
 
 - [What it is](#what-it-is)
@@ -604,6 +616,10 @@ solution plays the other seat.
   turn after I bet and got called" — over and over. The hand is then dealt from
   the range that **reaches that node**, not from the starting range, so you get
   the hands that really play there.
+- **The keyboard.** `F` fold, `X` check, `C` call, `1` `2` … the bet and raise
+  sizes in order, `N` next hand, `R` replay this one, `A` toggle the advice. Each
+  key is printed in the corner of its own button, and nothing fires while you are
+  typing in a field.
 - **The seed.** Every hand shows one, and *Replay this hand* deals it again:
   same cards, same runout, same die. It is the only way to go back to the hand
   you butchered and find out what the other line was worth.
