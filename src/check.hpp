@@ -6089,6 +6089,20 @@ private:
         S.solve(1, 0);
         const double montar = std::chrono::duration<double>(
             std::chrono::steady_clock::now() - b0).count();
+        // Lo que cuesta UNA iteracion en ESTA maquina. Sin esto, el margen de
+        // "paro cerca del tope" es un numero fijo en segundos, y un numero fijo
+        // en segundos dice cosas distintas en una maquina que va cuatro veces
+        // mas lenta.
+        //
+        // MEDIDO: en la maquina del autor una iteracion de este spot cuesta
+        // 0,35 s; en el runner de la CI, varias veces mas. Con el margen fijo
+        // de 4 segundos la comprobacion fallaba alli y pasaba aqui, que es la
+        // peor clase de comprobacion que hay.
+        const auto i0 = std::chrono::steady_clock::now();
+        S.solve(4, 0);
+        const double por_vuelta = std::chrono::duration<double>(
+            std::chrono::steady_clock::now() - i0).count() / 4.0;
+
         S.set_timeout_secs(1.0);
         const auto t0 = std::chrono::steady_clock::now();
         S.solve(300, 0);
@@ -6099,12 +6113,21 @@ private:
         truth("it stopped on the clock", S.timeout_reached(),
               "no dice que parase por el tope de tiempo");
         // Un segundo de tope, mas lo que tarde la tanda que estuviera corriendo.
-        // Las tandas se ajustan para no pasar de dos segundos, asi que cuatro es
-        // de sobra. Con tandas fijas de 64 esto se iba a cinco y medio en este
-        // spot: la comprobacion distingue las dos cosas, que es a lo que viene.
+        // Con un tope puesto la primera tanda son cuatro vueltas, asi que lo
+        // peor que puede pasar es pasarse cuatro vueltas DE ESTA MAQUINA, y un
+        // segundo mas de margen por el ruido.
+        //
+        // Con tandas fijas de 64 esto se iba a cinco segundos y medio en este
+        // spot, que es lo que la comprobacion viene a distinguir: parar cerca
+        // del tope, y no mucho despues. Y 300 vueltas seguidas serian
+        // trescientas veces `por_vuelta`, asi que el margen sigue siendo
+        // estrecho por donde importa.
+        const double margen = 2.0 + 4.0 * por_vuelta;
         truth("and it stopped near it, not long after",
-              secs >= 0.8 && secs < 4.0,
-              "tardo " + fmt_num(secs) + "s de calculo con un tope de 1");
+              secs >= 0.8 && secs < margen,
+              "tardo " + fmt_num(secs) + "s de calculo con un tope de 1 y un " +
+              "margen de " + fmt_num(margen) + "s (" + fmt_num(por_vuelta) +
+              "s por vuelta)");
         truth("and what it did solve is usable",
               S.solved() && S.solver() && S.solver()->iterations_done() > 0,
               "no dejo nada resuelto");

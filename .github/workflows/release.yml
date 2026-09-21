@@ -42,9 +42,11 @@ jobs:
       - name: Que pase la bateria antes de publicarse
         shell: pwsh
         run: |
-          $salida = & "${{ matrix.ruta }}" --check
+          # Entera y sin capturar, igual que en build.yml: con las cinco
+          # ultimas lineas, un fallo se queda sin nombre y no hay forma de
+          # saber cual fue. Paso justo eso al etiquetar la v0.1.0.
+          & "${{ matrix.ruta }}" --check
           $codigo = $LASTEXITCODE
-          $salida | Select-Object -Last 5
           if ($codigo -ne 0) { throw "la bateria fallo con $codigo" }
 
       - name: Renombrar
