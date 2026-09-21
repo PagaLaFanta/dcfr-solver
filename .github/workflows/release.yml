@@ -37,15 +37,17 @@ jobs:
       - name: Compilar
         run: cmake --build build --config Release --parallel
 
+      # En PowerShell y no en bash: el bash de los runners de Windows devuelve
+      # 127 al lanzar un .exe que esta ahi y arranca. Ver build.yml.
       - name: Que pase la bateria antes de publicarse
-        shell: bash
+        shell: pwsh
         run: |
-          "${{ matrix.ruta }}" --check | tail -5
+          & "${{ matrix.ruta }}" --check | Select-Object -Last 5
+          if ($LASTEXITCODE -ne 0) { throw "la bateria fallo con $LASTEXITCODE" }
 
       - name: Renombrar
-        shell: bash
-        run: |
-          cp "${{ matrix.ruta }}" "${{ matrix.nombre }}"
+        shell: pwsh
+        run: Copy-Item "${{ matrix.ruta }}" "${{ matrix.nombre }}"
 
       - uses: actions/upload-artifact@v4
         with:
