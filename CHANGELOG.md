@@ -6,6 +6,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) loosely and
 the project uses [semantic versioning](https://semver.org/): until 1.0.0, the
 minor number moves when something user-visible changes.
 
+## [0.1.4] — 2026-09-22
+
+- **`solver --check` could report a failure that was not yours.** The time-cap
+  test worked out how long the capped solve took by subtracting a separately
+  timed tree build from the wall clock — two noisy measurements to learn
+  something `solve()` already knows. On a loaded machine the build does not
+  repeat the same, the subtraction drifts, and the test failed **below** its
+  bound: 0.739 s against a 1 s cap where it wanted 0.8. Caught because the same
+  commit passed on `main` and failed on the tag build half an hour later.
+
+  `solve()` now times its own work — `last_solve_secs()`, with the clock
+  starting after the build, which is exactly what the cap applies to — and the
+  test asks it instead of estimating. Asking rather than estimating also lets
+  the lower bound demand the **whole cap** (1.0 s) instead of a fudged 0.8: if
+  it stopped on the clock, it had already passed it. Three mutations confirm the
+  bound still bites, including a cap that fires on the first chunk (0.303 s).
+
+  No change to what the program does; the binary only gains a timestamp.
+
 ## [0.1.3] — 2026-09-22
 
 - **The program no longer outlives the browser.** Reported from actually using

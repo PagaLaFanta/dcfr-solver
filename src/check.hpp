@@ -6394,13 +6394,6 @@ private:
                    S.load_config_text(DEFAULT_SPOT, e), e)) return;
         // Sin objetivo de precision: lo unico que puede parar esto es el reloj.
         S.set_acc_stop(false);
-        // Lo que cuesta MONTAR el solver se mide aparte y se descuenta: solve()
-        // lo monta cada vez, y en este spot son medio giga. Lo que se juzga es el
-        // tiempo del calculo, que es lo que el tope manda.
-        const auto b0 = std::chrono::steady_clock::now();
-        S.solve(1, 0);
-        const double montar = std::chrono::duration<double>(
-            std::chrono::steady_clock::now() - b0).count();
         // Lo que cuesta UNA iteracion en ESTA maquina. Sin esto, el margen de
         // "paro cerca del tope" es un numero fijo en segundos, y un numero fijo
         // en segundos dice cosas distintas en una maquina que va cuatro veces
@@ -6416,10 +6409,16 @@ private:
             std::chrono::steady_clock::now() - i0).count() / 4.0;
 
         S.set_timeout_secs(1.0);
-        const auto t0 = std::chrono::steady_clock::now();
         S.solve(300, 0);
-        const double secs = std::chrono::duration<double>(
-            std::chrono::steady_clock::now() - t0).count() - montar;
+        // El tiempo lo dice el solve, no el reloj de pared de aqui.
+        //
+        // MEDIDO en la integracion continua, que fallo: antes esto era el reloj
+        // de pared MENOS un montaje cronometrado en una pasada aparte, y en un
+        // runner cargado ese montaje no se repite igual. Salio 0,739 s donde se
+        // pedia 0,8 -- por abajo, no por arriba -- y el MISMO commit habia
+        // pasado en main media hora antes. Restar dos medidas ruidosas para
+        // saber algo que solve() tiene delante era el error.
+        const double secs = S.last_solve_secs();
         S.set_timeout_secs(0.0);
 
         truth("it stopped on the clock", S.timeout_reached(),
@@ -6441,8 +6440,12 @@ private:
         // Sigue siendo estrecho por donde importa: si no parase, 300 vueltas
         // serian trescientas veces `por_vuelta`, que aqui son 75 segundos.
         const double margen = 1.0 + (2.0 > 4.0 * por_vuelta ? 2.0 : 4.0 * por_vuelta) + 1.0;
+        // Por abajo se puede pedir el tope entero: el bucle mira el reloj al
+        // acabar cada tanda, asi que si paro por tiempo es que ya lo habia
+        // pasado. Con el numero de fuera habia que dejar un margen de ruido;
+        // con el de dentro, no.
         truth("and it stopped near it, not long after",
-              secs >= 0.8 && secs < margen,
+              secs >= 1.0 && secs < margen,
               "tardo " + fmt_num(secs) + "s de calculo con un tope de 1 y un " +
               "margen de " + fmt_num(margen) + "s (" + fmt_num(por_vuelta) +
               "s por vuelta)");

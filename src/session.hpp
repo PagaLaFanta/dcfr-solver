@@ -1812,6 +1812,11 @@ public:
         if (!build_solver(notes)) return;
         acc_hit_.store(false);
         timeout_hit_.store(false);
+        // El reloj arranca DESPUES de montar, que es exactamente a lo que se
+        // aplica el tope de tiempo. Medirlo aqui y no desde fuera: quien mira
+        // desde fuera tiene que restar el montaje a ojo, y esa resta fallaba
+        // en la integracion continua -- ver last_solve_secs().
+        const auto reloj0 = std::chrono::steady_clock::now();
         const bool para_por_precision = (acc_stop_ && acc_target_ > 0.0);
         if (!para_por_precision && timeout_secs_ <= 0.0) {
             S_->run(iterations, report_every, progress, cancel);
@@ -1879,6 +1884,8 @@ public:
                 }
             }
         }
+        solve_secs_ = std::chrono::duration<double>(
+            std::chrono::steady_clock::now() - reloj0).count();
         solved_ = true;
         expl_.store(S_->exploitability());
     }
@@ -1964,6 +1971,16 @@ public:
     int    progress_done()  const { return prog_.load(); }
     int    progress_total() const { return prog_total_; }
     bool   was_stopped()    const { return cancel_.load(); }
+    // Lo que tardo el ULTIMO solve sincrono, sin contar el montaje.
+    //
+    // MEDIDO en la integracion continua: la comprobacion del tope de tiempo lo
+    // calculaba desde fuera restando al reloj de pared un montaje medido en
+    // una pasada aparte, y en un runner cargado ese montaje no se repite igual.
+    // Salio 0,739 s donde el aserto pedia 0,8 y el MISMO commit habia pasado en
+    // la ejecucion de main media hora antes. Dos restas ruidosas para saber un
+    // numero que el propio solve tiene delante.
+    double last_solve_secs() const { return solve_secs_; }
+
     double progress_seconds() const {
         if (running_.load())
             return std::chrono::duration<double>(
@@ -2560,6 +2577,7 @@ private:
     // 300 el tope llegaba antes que el objetivo en cuanto el arbol crecia, y
     // entonces el campo de precision parecia no hacer nada.
     int                         iters_    = 3000;
+    double                      solve_secs_ = 0.0;   // lo que tardo el ultimo solve
     double                      acc_target_ = 1.0;   // % del bote, convencion estandar
     bool                        acc_stop_   = true;
     std::atomic<bool>           acc_hit_{false};
