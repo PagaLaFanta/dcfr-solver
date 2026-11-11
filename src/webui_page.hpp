@@ -2197,6 +2197,18 @@ function ponIdioma(l){
     renderStreets(); renderHud(); renderStrategy(); renderMade(); renderNav();
     renderDeck();
   }
+  // Y lo de guardar, que NO depende de `state` y por eso se quedaba fuera.
+  //
+  // MEDIDO cambiando de idioma con la pagina abierta: la nota del disco seguia
+  // diciendo "What is saved takes 0 B - 39.31 GB free on the disk" con el resto
+  // de la pantalla ya en castellano. Solo se arreglaba sola al guardar o
+  // borrar algo, que es lo que vuelve a llamar aqui -- o sea que no se notaba
+  // casi nunca, y cuando se notaba parecia cosa de magia.
+  //
+  // Esta lista es a mano y ya se pudrio una vez. La comprobacion que la vigila
+  // existe por eso: lo que se arma con t() fuera de `state` hay que apuntarlo
+  // aqui, y nadie se acuerda de hacerlo.
+  refreshSaves();
 }
 
 function toggleOpts(){

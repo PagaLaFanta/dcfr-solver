@@ -585,10 +585,25 @@ si encuentra el cliente de una sala no abre:
 Y si abres una sala con el programa ya abierto, **se cierra solo** en tres
 segundos y deja escrito el motivo.
 
-Cubre **PokerStars, GGPoker, Winamax, 888poker, CoinPoker e iPoker** (Titan,
-Red Star, Betfair, William Hill, NetBet). La lista es una tabla de trozos de
-marca arriba de [`src/rooms.hpp`](src/rooms.hpp): una sala que falte es una
-línea.
+Cubre **PokerStars, GGPoker, Winamax, 888poker, CoinPoker, Sportium e iPoker**
+(Titan, Red Star, Betfair, William Hill, NetBet). La lista es una tabla de
+trozos de marca arriba de [`src/rooms.hpp`](src/rooms.hpp): una sala que falte
+es una línea.
+
+Mira **dónde vive el ejecutable**, no solo cómo se llama. Hay salas con cliente
+de nombre genérico: el de Sportium es `PokerClient.exe`, que no casa con ninguna
+marca ni puede hacerlo — buscar la palabra "poker" a secas es justo lo que
+cazaría a los trackers de aquí abajo. Lo que la delata es la carpeta:
+
+```
+  ...\AppData\Local\Sportium Poker\data\PokerClient.exe
+                      ^^^^^^^^ lo único que dice de quién es
+```
+
+Esto se encontró con la sala abierta de verdad, y la versión publicada abría a
+su lado sin decir nada. Hacen falta las dos mitades, y las dos se midieron antes
+de escribir ninguna: añadir la marca sin leer rutas no caza nada, porque el
+nombre del ejecutable sigue sin contener "sportium".
 
 Busca **marcas**, nunca la palabra "poker" a secas: PokerTracker, Hold'em
 Manager, Hand2Note, Flopzilla, GTO+ y cualquier otra herramienta de estudio
@@ -599,6 +614,11 @@ dejaría el programa inservible para quien lo usa como se debe.
 la mesa en segundo plano que se te olvidó, el "solo miro una cosa rápida". Así
 es como pasa de verdad. No evita a quien quiera saltárselo: el código es libre y
 se recompila en treinta segundos. Tampoco pretende otra cosa.
+
+Y que quede claro qué es la lista: **las marcas que este programa conoce**. Una
+sala que no esté en ella, instalada en una carpeta que no la nombre, no se caza.
+Si juegas en una que no conoce, con el nombre del proceso y la carpeta basta
+para añadirla.
 
 ---
 

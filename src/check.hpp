@@ -93,6 +93,7 @@ public:
         the_english_table_does_not_rot();
         nothing_asks_to_be_translated_and_is_not();
         no_key_has_a_space_stuck_to_it();
+        changing_language_redraws_what_code_wrote();
         the_workflows_are_not_broken_yaml();
         it_refuses_to_open_next_to_a_poker_room();
         a_generic_client_name_does_not_hide_a_room();
@@ -5724,6 +5725,55 @@ private:
     // semanas ahi. Dos comprobaciones miraban ya esta tabla y ninguna las vio,
     // porque las dos aprietan los dos lados antes de comparar y el fallo
     // consiste justo en eso.
+    // Cambiar de idioma rearma tambien lo que el codigo escribio.
+    //
+    // El observador traduce lo que esta en el markup, pero lo que se compone en
+    // JavaScript con t() y se mete por innerHTML ya es texto suelto con numeros
+    // dentro: ahi no hay nada que traducir despues. Por eso ponIdioma() vuelve
+    // a llamar a quien lo armo.
+    //
+    // MEDIDO con la pagina abierta: la nota del disco seguia en ingles --
+    // "What is saved takes 0 B - 39.31 GB free on the disk" -- con el resto de
+    // la pantalla ya en castellano. refreshSaves() no estaba en la lista, y
+    // ademas queda fuera del `if(state)`, asi que no se arreglaba ni de rebote.
+    // Solo volvia a su idioma al guardar o borrar algo, que es lo siguiente que
+    // la llama: por eso se veia poco y parecia magia negra.
+    //
+    // La lista de ponIdioma() es a mano y ya se pudrio una vez. Esto no
+    // comprueba una idea elegante, comprueba la lista: es lo unico que impide
+    // que el proximo que anada un render con t() se olvide de apuntarlo.
+    void changing_language_redraws_what_code_wrote() {
+        const std::string P = WEBUI_PAGE;
+        const size_t i = P.find("function ponIdioma(");
+        if (!truth("there is one place that changes the language",
+                   i != std::string::npos)) return;
+        const size_t fin = P.find("\n}", i);
+        if (!truth("and it has a body", fin != std::string::npos)) return;
+        const std::string cuerpo = P.substr(i, fin - i);
+
+        // Lo que tiene que volver a dibujarse. Cada nombre esta aqui porque
+        // compone texto con t(): si alguno se cae de ponIdioma(), su panel se
+        // queda en el idioma anterior y nadie lo ve hasta que es tarde.
+        static const char* const REARMA[] = {
+            "applyState", "renderStreets", "renderHud", "renderStrategy",
+            "renderMade", "renderNav", "renderDeck", "refreshSaves",
+        };
+        for (const char* r : REARMA)
+            truth(std::string("and it redraws ") + r,
+                  cuerpo.find(std::string(r) + "(") != std::string::npos,
+                  std::string(r) + " se quedaria en el idioma viejo");
+
+        // Y el que se nos escapo queda FUERA del if(state), porque no depende
+        // de el: si vuelve a entrar dentro, vuelve el fallo.
+        const size_t est = cuerpo.find("if(state)");
+        const size_t sav = cuerpo.find("refreshSaves(");
+        const size_t cierra = cuerpo.find("\n  }", est == std::string::npos ? 0 : est);
+        truth("and the saves panel is redrawn even with no solution loaded",
+              est != std::string::npos && sav != std::string::npos &&
+              cierra != std::string::npos && sav > cierra,
+              "refreshSaves() ha vuelto a caer dentro del if(state)");
+    }
+
     void no_key_has_a_space_stuck_to_it() {
         const std::string P = WEBUI_PAGE;
         const Tabla T = leer_tabla(P);

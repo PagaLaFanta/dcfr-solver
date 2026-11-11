@@ -35,6 +35,35 @@ minor number moves when something user-visible changes.
   not an option". The text console has had `set iso on|off` all along; what is
   true is that the browser interface offers no switch.
 
+- **Switching language left one panel behind.** The observer translates what is
+  in the markup, but text composed in JavaScript and written through
+  `innerHTML` is loose text with numbers in it by then — there is nothing left
+  to translate. `ponIdioma()` re-runs whoever built it, and the saves panel was
+  not on its list: with the page open, the disk note kept saying "What is saved
+  takes 0 B · 39.31 GB free on the disk" while everything around it was already
+  in Spanish. It only came back to its own language when you next saved or
+  deleted something, so it was easy to miss and looked like black magic.
+
+  Measured across the whole screen rather than guessed: of 607 text leaves, nine
+  read the same in both languages and eight of those are meant to — the
+  `Idioma / Language` heading, a range example, and the saved-range filenames.
+  This note was the only real one.
+
+  The list inside `ponIdioma()` is kept by hand and had already rotted once, so
+  the suite now pins it, including that the saves panel is redrawn even with no
+  solution loaded — which is exactly the state the bug showed up in.
+
+- **Two different buttons were called the same thing.** The translation table
+  had eight duplicate keys out of 573; in a JavaScript object the last one wins,
+  so the first was dead and three of the eight said different things. One was
+  visible: the button that sets the board and the button that adds flops to a
+  script were both labelled `Poner`, so in English both read "Add" and the board
+  one should have read "Set". They have their own labels now.
+
+  What looked like redundancy and is not: 39 keys that translate to themselves.
+  They declare "same in both languages", and the check that demands an English
+  line for every `t()` needs them. Removing them would have broken the suite.
+
 ## [0.1.4] — 2026-09-22
 
 - **`solver --check` could report a failure that was not yours.** The time-cap

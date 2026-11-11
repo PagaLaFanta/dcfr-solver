@@ -572,10 +572,25 @@ finds a poker client it does not open:
 If you open a room while it is already running, it closes itself within three
 seconds and says why.
 
-Covered: **PokerStars, GGPoker, Winamax, 888poker, CoinPoker and iPoker**
-(Titan, Red Star, Betfair, William Hill, NetBet). The list is a table of brand
-fragments at the top of [`src/rooms.hpp`](src/rooms.hpp) -- a room that is
-missing is one line.
+Covered: **PokerStars, GGPoker, Winamax, 888poker, CoinPoker, Sportium and
+iPoker** (Titan, Red Star, Betfair, William Hill, NetBet). The list is a table
+of brand fragments at the top of [`src/rooms.hpp`](src/rooms.hpp) -- a room
+that is missing is one line.
+
+It looks at **where the executable lives**, not only at what it is called. Some
+rooms ship a client with a generic name: Sportium's is `PokerClient.exe`, which
+matches no brand and cannot be made to -- matching the bare word "poker" is
+exactly what would catch the trackers below. The folder is what gives it away:
+
+```
+  ...\AppData\Local\Sportium Poker\data\PokerClient.exe
+                      ^^^^^^^^ this is the only part that says whose it is
+```
+
+This was found with the room actually running, and the published build opened
+beside it without a word. Both halves are needed and both were measured before
+either was written: adding the brand without reading paths catches nothing,
+because the executable name still does not contain "sportium".
 
 It matches **brands**, never the bare word "poker": PokerTracker, Hold'em
 Manager, Hand2Note, Flopzilla, GTO+ and every other study tool keep working,
@@ -587,6 +602,11 @@ open from before, the table in the background you forgot about, the "I'll just
 check one thing". That is how it actually happens. It does not stop anyone
 determined to get around it: the code is free and rebuilds in thirty seconds.
 It does not claim otherwise.
+
+And be clear about what the list is: **the brands this program knows**. A room
+that is not on it, installed in a folder that does not name it, will not be
+caught. If you play somewhere it does not know, the process name and the folder
+are all it takes to add it.
 
 ---
 
