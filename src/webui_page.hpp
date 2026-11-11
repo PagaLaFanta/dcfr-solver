@@ -1069,7 +1069,7 @@ const char* const WEBUI_PAGE = R"HTMLPAGE(<!doctype html>
         <label>Flops al azar</label>
         <div class="row">
           <input type="number" id="scrN" min="1" max="500" step="1" value="20">
-          <button class="sm" style="flex:0 0 auto" onclick="scriptFlops()">Poner</button>
+          <button class="sm" style="flex:0 0 auto" onclick="scriptFlops()">Añadir</button>
         </div>
         <div class="note">Ninguno repetido, y ninguno que sea otro con los palos
           cambiados de nombre: esos dan la misma solución.</div>
@@ -1511,7 +1511,7 @@ let painting=false, paintVal=0;
 // para un texto que todavía no se ha traducido: se ve, y se ve que falta.
 const EN = {
 // -- barra de arriba y pastillas
-'parado':'idle', 'lista':'ready', 'resolviendo':'solving', 
+'parado':'idle', 'lista':'ready',  
  'cargando':'loading', 'sin resolver':'not solved',
 'sin locks':'no locks', 'opciones':'options',
 'Idioma / Language':'Idioma / Language',
@@ -1597,7 +1597,7 @@ const EN = {
 'Cómo se escriben los tamaños':'How sizings are written',
 'Una lista separada por':'A list separated by',
 'comas, espacios o punto y coma':'commas, spaces or semicolons',
-'. Da igual:':'. It makes no difference:', 'y':'and', 'son lo mismo.':'are the same.',
+'. Da igual:':'. It makes no difference:',  'son lo mismo.':'are the same.',
 'En el campo de tamaños de bet':'In the bet sizing field',
 'un 30% del bote':'30% of the pot', 'o':'or',
 'tres cuartos del bote; el':'three quarters of the pot; the',
@@ -1667,7 +1667,7 @@ const EN = {
   'Click or drag a hand and it takes that weight in that action; its other actions share what is left in proportion to what they already had. Nothing to confirm: painting is changing it.',
 'Fijo':'Fixed', 'Proporcional':'Proportional',
 'Pintar todo el rango':'Paint the whole range', 'Deshacer cambios':'Undo changes',
-'Fijar y cerrar':'Lock and close', 'Cancelar':'Cancel', 'Cerrar':'Close',
+'Fijar y cerrar':'Lock and close', 'Cancelar':'Cancel', 
 'Congelar lo que no hayas tocado':'Freeze what you did not touch',
 'Deja clavado el resto del rango donde esta, sin cambiarlo. Sirve porque al bloquear solo unas manos el solver sigue pudiendo mover las demas para compensar: si tu lectura es':
   'Pins the rest of the range where it is. It matters because locking only a few hands leaves the solver free to move the others to compensate: if your read is',
@@ -1757,7 +1757,7 @@ const EN = {
 'Cambiar el board':'Change the board',
 'el board se queda como estaba':'the board stays as it was',
 'y una explotabilidad del':'and an exploitability of',
-'% del bote':'% of the pot',
+
 'tira la solución que tienes:':'throws away the solution you have:',
 'Esto no se puede deshacer. Si la quieres conservar, cancela y guarda el':
   'This cannot be undone. To keep it, cancel and save the',
@@ -1780,7 +1780,7 @@ const EN = {
 'para el solve para cambiar esto':'stop the solve to change this',
 'ponle un nombre':'give it a name',
 'no hay rangos guardados':'no saved ranges',
-'no se pudo':'could not',
+
 'añadiendo iteraciones…':'adding iterations…',
 'explotable en un':'exploitable for',
 '% del bote por mano':'% of the pot per hand',
@@ -1792,7 +1792,7 @@ const EN = {
   'stopped early — the strategy is usable, but less converged.',
 'parando al terminar esta iteración...':'stopping at the end of this iteration...',
 'Raíz':'Root', 'principio del árbol':'start of the tree',
-'· nodo de azar, bote':'· chance node, pot',
+
 '— aquí no hay nada que resolver, vuelve atrás en la línea':
   '— nothing to solve here, go back up the line',
 'Reparte el':'Deal the',
@@ -1821,7 +1821,7 @@ const EN = {
   'pick a decision node to see its split',
 '= el bote':'= the pot',
 'elige un nodo del árbol':'pick a node in the tree',
-'aún no hay nada que leer en este nodo':'nothing to read at this node yet',
+
 'EV del nodo':'node EV',
 'pinchar otra vez para quitar el filtro':'click again to drop the filter',
 'ver solo el rango que hace':'show only the range that plays',
@@ -2030,8 +2030,7 @@ const EN = {
   'Copy',
 'Descargar':
   'Download',
-'Poner':
-  'Add',
+'Añadir':'Add',
 'generando...':
   'generating...',
 'listo:':

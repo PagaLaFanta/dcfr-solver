@@ -95,6 +95,7 @@ public:
         no_key_has_a_space_stuck_to_it();
         the_workflows_are_not_broken_yaml();
         it_refuses_to_open_next_to_a_poker_room();
+        a_generic_client_name_does_not_hide_a_room();
         the_gear_holds_every_advanced_option();
         taking_the_line_panel_out_left_nothing_behind();
         the_long_notes_are_one_line_until_you_ask();
@@ -4928,6 +4929,64 @@ private:
     // sala; un falso positivo deja el programa inservible para alguien que
     // tiene PokerTracker abierto, que es justo la herramienta con la que se
     // estudia. Por eso la lista busca marcas y no la palabra "poker".
+    // Una sala con cliente de nombre generico tambien se caza.
+    //
+    // MEDIDO en la maquina del autor, con la sala abierta de verdad: el cliente
+    // de Sportium Poker se llama `PokerClient.exe`. Ese nombre no coincide con
+    // ninguna marca de la tabla -- ni puede, porque la regla de no mirar la
+    // palabra "poker" a secas es justo lo que deja vivir a PokerTracker, a
+    // Hold'em Manager y a Flopzilla. Lo unico que delata la sala es la carpeta
+    // donde vive el ejecutable.
+    //
+    // Comprobado con el binario publicado: abria tan normal con la sala
+    // levantada. Por eso ahora se mira tambien la ruta.
+    //
+    // Y anadir la marca sin mirar la ruta no habria servido de nada: el nombre
+    // sigue sin contener "sportium". Las dos mitades hacen falta, y las dos se
+    // comprueban aqui por separado.
+    void a_generic_client_name_does_not_hide_a_room() {
+        // El nombre solo no dice nada, y no debe decirlo: si lo dijera seria
+        // porque estamos mirando la palabra "poker" a secas.
+        truth("a generic client name says nothing by itself",
+              rooms::room_of_process("PokerClient.exe").empty(),
+              "el nombre a secas ya casa, y eso cazaria a los trackers");
+
+        // La carpeta si.
+        truth("but the folder it lives in does",
+              rooms::room_of_process(
+                  "C:\\Users\\alguien\\AppData\\Local\\Sportium Poker\\data\\PokerClient.exe") == "Sportium Poker",
+              "la carpeta de la sala no la delata");
+
+        // Y las herramientas de estudio siguen vivas, tambien por su RUTA, que
+        // es la superficie nueva que abre mirar rutas.
+        static const char* const HERRAMIENTAS[] = {
+            "PokerTracker4.exe",
+            "C:\\Program Files\\PokerTracker 4\\PokerTracker4.exe",
+            "HM3.exe",
+            "C:\\Program Files\\Hold'em Manager 3\\HM3.exe",
+            "Flopzilla.exe",
+            "C:\\Program Files (x86)\\Flopzilla\\Flopzilla.exe",
+            "Equilab.exe",
+            "GTO+.exe",
+        };
+        for (const char* h : HERRAMIENTAS)
+            truth(std::string("and a study tool is left alone: ") + h,
+                  rooms::room_of_process(h).empty(),
+                  std::string("casa con ") + rooms::room_of_process(h));
+
+        // Y lo que de verdad hace falta para que todo lo anterior sirva: que la
+        // lista de procesos TRAIGA rutas. Sin esto las lineas de arriba pasan
+        // igual y el programa sigue ciego, que es como estaba.
+        const std::vector<std::string> ps = rooms::process_names();
+        int con_ruta = 0;
+        for (const std::string& p : ps)
+            if (p.find(':') != std::string::npos || p.find('/') != std::string::npos)
+                ++con_ruta;
+        truth("and the process list carries paths, not just names", con_ruta > 0,
+              std::to_string(con_ruta) + " rutas entre " +
+              std::to_string(ps.size()) + " entradas");
+    }
+
     void it_refuses_to_open_next_to_a_poker_room() {
         // 1. Las salas que se pidieron, con los nombres con los que salen sus
         //    clientes en el administrador de tareas.

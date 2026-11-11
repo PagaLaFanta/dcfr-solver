@@ -186,8 +186,10 @@ lo dice. Si fijas por rangos (`QQ+`) no pierdes nada.
 
 **¿Por qué a veces dice "suits collapsed x6" y otras x2 o nada?**
 
-(El colapso está siempre activo; no es una opción. Lo que
-varía es cuánto se puede aprovechar.)
+(El colapso viene activado y la interfaz no ofrece interruptor, así que desde
+el navegador está siempre puesto. La consola de texto sí lo apaga con `set iso
+off`, que sirve para comprobar que un resultado no depende de él. Lo que varía
+solo es cuánto se puede aprovechar.)
 
 Dos runouts que solo se diferencian en un intercambio de palos son la misma
 decisión, así que se resuelve uno y el otro se lee permutando. Cuánto se ahorra
@@ -253,12 +255,22 @@ Porque todas las salas prohiben en sus términos usar ayuda en tiempo real
 mientras juegas, y esto lo es si lo tienes al lado de la mesa. El programa mira
 los procesos al arrancar y no abre; si abres la sala después, se cierra solo.
 
-Cubre PokerStars, GGPoker, Winamax, 888poker, CoinPoker e iPoker. Busca marcas
-y no la palabra "poker", así que PokerTracker, Hold'em Manager, Flopzilla y demás
-siguen funcionando: eso lo comprueba la batería.
+Cubre PokerStars, GGPoker, Winamax, 888poker, CoinPoker, Sportium y las skins
+de iPoker. Busca marcas y no la palabra "poker", así que PokerTracker, Hold'em
+Manager, Flopzilla y demás siguen funcionando: eso lo comprueba la batería, por
+nombre y por ruta.
 
-Evita el accidente, que es como pasa de verdad. No evita a quien quiera
-saltárselo, y no pretende otra cosa.
+Mira **dónde vive el ejecutable**, no solo cómo se llama. Hay salas con cliente
+de nombre genérico: el de Sportium es `PokerClient.exe`, que no casa con ninguna
+marca ni puede hacerlo — buscar la palabra "poker" a secas es justo lo que
+cazaría a los trackers. Lo que la delata es la carpeta. Esto se encontró con la
+sala abierta de verdad: la versión publicada abría tan normal a su lado.
+
+Y que quede claro lo que es: **una lista de marcas que este programa conoce**.
+Una sala que no esté en la lista, instalada en una carpeta que no la nombre, no
+se caza. Evita el accidente, que es como pasa de verdad. No evita a quien quiera
+saltárselo, y no pretende otra cosa. Si juegas en una que no conoce, dinos el
+nombre del proceso y la carpeta.
 
 ## Jugar contra la solución
 

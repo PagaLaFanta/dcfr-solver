@@ -6,6 +6,35 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) loosely and
 the project uses [semantic versioning](https://semver.org/): until 1.0.0, the
 minor number moves when something user-visible changes.
 
+## [0.1.5] — 2026-11-11
+
+- **The poker-room guard missed a room that was running on the author's own
+  machine.** Found while comparing this program's architecture against a
+  commercial solver: a client called `PokerClient.exe` was up, and the published
+  build opened next to it without a word. It belongs to Sportium Poker, and its
+  executable name matches no brand in the table — nor can it, because matching
+  the bare word "poker" is precisely what would catch PokerTracker, Hold'em
+  Manager and Flopzilla. The only thing that identifies it is the folder it
+  lives in: `...\AppData\Local\Sportium Poker\data\PokerClient.exe`.
+
+  The guard now reads the **full path** of every process it can open, not just
+  the executable name, and Sportium is in the table. Both halves are needed:
+  adding the brand without reading paths changes nothing, which was measured
+  before writing either.
+
+  Shown end to end against a decoy with that exact shape — a generic executable
+  name inside a branded folder: the old build serves the page as usual, the new
+  one refuses and names the room. The guarantee that study tools keep working is
+  unchanged and is now checked **by path as well as by name**, so the wider
+  surface that reading paths opens is held down by the suite.
+
+  Said plainly in both FAQs: this is a list of brands the program knows. A room
+  that is not on it, in a folder that does not name it, is not caught.
+
+- **Fixed in the docs**: both FAQs claimed suit collapsing "is always on; it is
+  not an option". The text console has had `set iso on|off` all along; what is
+  true is that the browser interface offers no switch.
+
 ## [0.1.4] — 2026-09-22
 
 - **`solver --check` could report a failure that was not yours.** The time-cap

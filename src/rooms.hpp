@@ -42,6 +42,7 @@
 #else
   #include <cstdio>
   #include <dirent.h>
+  #include <unistd.h>   // readlink, para la ruta completa
 #endif
 
 namespace rooms {
@@ -69,6 +70,13 @@ inline const Sala SALAS[] = {
     { "betfairpoker",   "iPoker (Betfair)" },
     { "williamhillpoker", "iPoker (William Hill)" },
     { "netbetpoker",    "iPoker (NetBet)" },
+    // MEDIDO en la maquina del autor, con la sala abierta de verdad: su cliente
+    // se llama `PokerClient.exe`, que no coincide con NINGUNA marca de esta
+    // tabla. Lo unico que la delata es la carpeta donde vive:
+    //     ...\AppData\Local\Sportium Poker\data\PokerClient.exe
+    // Por eso se mira tambien la ruta y no solo el nombre. Anadir la marca sin
+    // mirar la ruta no habria servido de nada: probado, sigue sin cazarlo.
+    { "sportium",       "Sportium Poker" },
 };
 
 inline std::string lower_ascii(const std::string& s) {
@@ -92,7 +100,15 @@ inline std::string room_of_process(const std::string& exe) {
     return std::string();
 }
 
-// Todos los procesos de la maquina, por nombre de ejecutable.
+// Todo lo que se puede saber de los procesos de la maquina: el nombre del
+// ejecutable Y su ruta completa cuando se deja leer.
+//
+// Las dos cosas, porque hay salas cuyo cliente tiene un nombre generico y solo
+// la carpeta dice de quien es. La comparacion no cambia por esto: recorre una
+// lista de cadenas, y la ruta entra como un elemento mas.
+//
+// Que no se pueda leer la ruta de un proceso no es un fallo: los del sistema y
+// los de otro usuario no se dejan abrir, y de esos el nombre ya basta.
 inline std::vector<std::string> process_names() {
     std::vector<std::string> out;
 #if defined(_WIN32)
@@ -101,7 +117,21 @@ inline std::vector<std::string> process_names() {
     PROCESSENTRY32 pe;
     pe.dwSize = sizeof(pe);
     if (Process32First(snap, &pe)) {
-        do { out.push_back(pe.szExeFile); } while (Process32Next(snap, &pe));
+        do {
+            out.push_back(pe.szExeFile);
+            // PROCESS_QUERY_LIMITED_INFORMATION es el permiso mas pequeno que
+            // sirve para esto, y el unico que conceden los procesos de otro
+            // usuario. Si no lo dan, nos quedamos con el nombre.
+            const HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,
+                                         FALSE, pe.th32ProcessID);
+            if (h) {
+                char ruta[MAX_PATH];
+                DWORD n = static_cast<DWORD>(sizeof ruta);
+                if (QueryFullProcessImageNameA(h, 0, ruta, &n) && n > 0)
+                    out.push_back(std::string(ruta, n));
+                CloseHandle(h);
+            }
+        } while (Process32Next(snap, &pe));
     }
     CloseHandle(snap);
 #else
@@ -125,6 +155,11 @@ inline std::vector<std::string> process_names() {
             while (!s.empty() && (s.back() == '\n' || s.back() == '\r')) s.pop_back();
             if (!s.empty()) out.push_back(s);
         }
+        // Y la ruta completa, que es a donde apunta /proc/<pid>/exe.
+        const std::string enlace = std::string("/proc/") + p + "/exe";
+        char destino[4096];
+        const ssize_t n = readlink(enlace.c_str(), destino, sizeof destino - 1);
+        if (n > 0) out.push_back(std::string(destino, static_cast<size_t>(n)));
     }
     closedir(d);
 #endif

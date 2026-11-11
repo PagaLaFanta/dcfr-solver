@@ -187,8 +187,10 @@ interface tells you so. If you fix by ranges (`QQ+`) you lose nothing.
 
 **Why does it sometimes say "suits collapsed x6" and other times x2 or nothing?**
 
-(Collapsing is always on; it is not an option. What varies is how much of it can
-be exploited.)
+(Collapsing is on by default and the interface does not offer a switch, so from
+the browser it is always on. The text console can turn it off with `set iso off`
+— useful for checking that a result does not depend on it. What varies by
+itself is how much of it can be exploited.)
 
 Two runouts that differ only by a swap of suits are the same decision, so one is
 solved and the other is read off by permuting it. How much this saves depends on
@@ -255,12 +257,23 @@ this is real-time assistance if you have it next to the table. The program looks
 at the running processes when it starts and refuses to open; if you open a room
 afterwards, it closes itself.
 
-It covers PokerStars, GGPoker, Winamax, 888poker, CoinPoker and iPoker. It
-matches brand names and not the word "poker", so PokerTracker, Hold'em Manager,
-Flopzilla and the rest keep working — the suite checks that.
+It covers PokerStars, GGPoker, Winamax, 888poker, CoinPoker, Sportium and the
+iPoker skins. It matches brand names and not the word "poker", so PokerTracker,
+Hold'em Manager, Flopzilla and the rest keep working — the suite checks that,
+by name and by path.
 
-It prevents the accident, which is how this actually happens. It does not stop
-anyone determined to get around it, and it does not pretend to.
+It looks at **where the executable lives**, not only at what it is called. Some
+rooms ship a client with a generic name: Sportium's is `PokerClient.exe`, which
+matches no brand and cannot be made to — matching the bare word "poker" is
+exactly what would catch the trackers. The folder is what gives it away. This
+was found with the room actually running: the published build opened normally
+next to it.
+
+Be clear about what this is: **a list of brands this program knows**. A room
+that is not on the list, installed in a folder that does not name it, will not
+be caught. It prevents the accident, which is how this actually happens. It does
+not stop anyone determined to get around it, and it does not pretend to. If you
+play somewhere it does not know, tell us the process name and the folder.
 
 ## Playing against the solution
 
